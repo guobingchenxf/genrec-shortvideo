@@ -21,7 +21,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from genrec.config import load_config  # noqa: E402
+from genrec.config import load_config
 
 BUCKETS = [(0, 0), (1, 4), (5, 49), (50, 499), (500, None)]
 BUCKET_NAMES = ["pop=0", "pop 1-4", "pop 5-49", "pop 50-499", "pop 500+"]

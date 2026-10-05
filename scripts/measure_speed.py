@@ -13,9 +13,13 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from genrec.config import load_config  # noqa: E402
-from genrec.models.seqgen import (NextTokenLM, RawTokenizer,  # noqa: E402
-                                  SidTokenizer, build_training_sequences)
+from genrec.config import load_config
+from genrec.models.seqgen import (
+    NextTokenLM,
+    RawTokenizer,
+    SidTokenizer,
+    build_training_sequences,
+)
 
 
 def time_train(model, x, y, vocab, bs, batches, lr=1e-3):

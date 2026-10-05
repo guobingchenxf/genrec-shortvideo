@@ -27,7 +27,7 @@ def test_build_content_features_synthetic(tmp_path):
 
     cfg = {"tfidf_ngram_range": [2, 3], "tfidf_max_features": 1000,
            "tfidf_min_df": 1, "svd_dim": 4}
-    ids, feats, coverage, evr = build_content_features(
+    ids, feats, coverage, _evr = build_content_features(
         [1, 2, 3, 4], tmp_path, cfg, seed=0)
 
     assert ids.tolist() == [1, 2, 3, 4]
@@ -56,7 +56,7 @@ def test_build_content_features_handles_missing_cells(tmp_path):
 
     cfg = {"tfidf_ngram_range": [2, 3], "tfidf_max_features": 100,
            "tfidf_min_df": 1, "svd_dim": 1}
-    ids, feats, coverage, evr = build_content_features(
+    ids, feats, _coverage, _evr = build_content_features(
         [1], tmp_path, cfg, seed=0)
     assert ids.tolist() == [1]
     assert feats.shape == (1, 1)

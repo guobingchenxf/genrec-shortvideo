@@ -32,7 +32,7 @@ def load_matrix(path):
 def matrix_stats(df, name):
     return {
         "name": name,
-        "rows": int(len(df)),
+        "rows": len(df),
         "users": int(df["user_id"].nunique()),
         "videos": int(df["video_id"].nunique()),
         "nan_user_id": int(df["user_id"].isna().sum()),
@@ -100,10 +100,10 @@ def content_coverage(caption_path, raw_categories_path, target_videos):
     try:
         cats = pd.read_csv(raw_categories_path)
         category_videos = _numeric_video_ids(cats["video_id"])
-    except Exception as exc:  # 明确记录而不是静默：该文件是 SID 的特征来源之一
+    except Exception as exc:  # noqa: BLE001 - 明确记录而不是静默：该文件是 SID 的特征来源之一
         category_videos = set()
         print(f"[validate][warn] raw categories unreadable: {exc}")
-    target = set(int(v) for v in target_videos)
+    target = {int(v) for v in target_videos}
     return {
         "target_videos": len(target),
         "with_caption": len(target & caption_videos),

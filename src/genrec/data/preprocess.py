@@ -106,7 +106,7 @@ def build_train_samples(df, seq_len, max_per_user, max_total, seed,
         "candidates_before_subsample": int(n_candidates),
         "samples": int(n),
         "sampled": bool(n_candidates > max_total),
-        "users_with_samples": int(len(set(users))) if users else 0,
+        "users_with_samples": len(set(users)) if users else 0,
     }
     return arrays, stats
 
@@ -127,7 +127,7 @@ def build_small_eval(df_small, seq_len, context_ratio):
         vids = g["video_id"].to_numpy(dtype=np.int32)
         acts = g["action"].to_numpy(dtype=np.int8)
         n = len(vids)
-        cut = max(1, int(round(n * context_ratio)))
+        cut = max(1, round(n * context_ratio))
         if cut >= n:
             continue
         targets = list(dict.fromkeys(vids[cut:].tolist()))
@@ -220,7 +220,7 @@ def build_content_features(video_ids, data_dir, content_cfg, seed):
         category_map = grouped.to_dict()
         has_categories = set(grouped.index.tolist())
 
-    ids = np.asarray(sorted(set(int(v) for v in video_ids)), dtype=np.int32)
+    ids = np.asarray(sorted({int(v) for v in video_ids}), dtype=np.int32)
     corpus, coverage = [], {"with_caption": 0, "with_categories": 0, "empty": 0}
     for v in ids.tolist():
         t_cap = caption_map.get(v, "")
@@ -233,7 +233,7 @@ def build_content_features(video_ids, data_dir, content_cfg, seed):
         if not combined:
             coverage["empty"] += 1
         corpus.append(combined)
-    coverage["total_videos"] = int(len(ids))
+    coverage["total_videos"] = len(ids)
 
     vec = TfidfVectorizer(
         analyzer="char",
@@ -332,16 +332,16 @@ def run(cfg, smoke=False):
         "watch_ratio_buckets": buckets,
         "time_split": {"quantile": pre["time_split_quantile"], "t0": t0,
                        "t0_readable": str(pd.to_datetime(t0, unit="s"))},
-        "big_matrix_rows_used": int(len(big)),
-        "small_matrix_rows_used": int(len(small)),
+        "big_matrix_rows_used": len(big),
+        "small_matrix_rows_used": len(small),
         "rows_dropped_nan_key_fields": dropped,
         "train_stats": train_stats,
         "val_stats": val_stats,
-        "eval_users": int(len(eval_arrays["user_ids"])),
-        "eval_target_pairs_excluded_from_train": int(len(exclude_pairs)),
+        "eval_users": len(eval_arrays["user_ids"]),
+        "eval_target_pairs_excluded_from_train": len(exclude_pairs),
         "content_coverage": coverage,
         "content_svd_explained_variance": svd_evr,
-        "video_vocab_size": int(len(content_ids)),
+        "video_vocab_size": len(content_ids),
         "timings_seconds": timer.report()["wall_seconds"],
         "memory": timer.report(),
     }

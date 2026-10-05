@@ -5,13 +5,10 @@
 """
 
 import json
-import time
 
 import numpy as np
 import pandas as pd
 from scipy import sparse
-
-from genrec.utils.monitor import save_json
 
 
 def build_cache(cfg):

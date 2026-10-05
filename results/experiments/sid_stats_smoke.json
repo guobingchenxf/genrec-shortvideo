@@ -2,36 +2,43 @@
   "n_videos": 8202,
   "levels": 3,
   "codebook_size": 256,
-  "unique_sids": 28,
-  "collision_groups": 19,
-  "collided_videos": 8193,
-  "max_group_size": 8043,
-  "collision_rate": 0.9989027066569129,
+  "unique_sids": 2492,
+  "collision_groups": 749,
+  "collided_videos": 6459,
+  "max_group_size": 118,
+  "collision_rate": 0.7874908558888076,
+  "code_usage_per_level": [
+    59,
+    67,
+    92
+  ],
+  "feature_normalization": "standardized (mean/std saved in checkpoint)",
+  "tag": null,
   "smoke": true,
   "train_log_tail": [
     {
       "epoch": 28,
-      "loss": 0.004922,
-      "recon": 0.004912,
-      "vq": 9e-06
+      "loss": 3.564777,
+      "recon": 0.520109,
+      "vq": 3.044669
     },
     {
       "epoch": 29,
-      "loss": 0.004919,
-      "recon": 0.004909,
-      "vq": 1e-05
+      "loss": 3.438499,
+      "recon": 0.502895,
+      "vq": 2.935604
     },
     {
       "epoch": 30,
-      "loss": 0.004993,
-      "recon": 0.004978,
-      "vq": 1.5e-05
+      "loss": 3.501781,
+      "recon": 0.521363,
+      "vq": 2.980418
     }
   ],
   "timings_seconds": {
     "load_features": 0.03,
-    "train_rqvae": 38.81,
-    "encode_and_table": 0.3,
-    "save": 0.02
+    "train_rqvae": 32.33,
+    "encode_and_table": 2.16,
+    "save": 0.03
   }
 }

@@ -6,9 +6,14 @@
 import numpy as np
 
 from genrec.eval.metrics import ndcg_at_k, recall_at_k
-from genrec.models.seqgen import (NextTokenLM, RawTokenizer, SidTokenizer,
-                                  beam_next_raw, beam_search_sid,
-                                  build_training_sequences)
+from genrec.models.seqgen import (
+    NextTokenLM,
+    RawTokenizer,
+    SidTokenizer,
+    beam_next_raw,
+    beam_search_sid,
+    build_training_sequences,
+)
 
 
 def _sid_tok():

@@ -41,8 +41,8 @@ def main(argv=None):
     p_tg.add_argument("--smoke", action="store_true")
 
     p_ev = sub.add_parser("evaluate", help="全观测协议评估")
-    p_ev.add_argument("--methods", default=",".join(
-        ["pop", "itemcf", "gen-sid", "gen-sid-v2", "gen-raw", "gru-raw"]))
+    p_ev.add_argument("--methods",
+                      default="pop,itemcf,gen-sid,gen-sid-v2,gen-raw,gru-raw")
     p_ev.add_argument("--config", default="configs/default.yaml")
     p_ev.add_argument("--smoke", action="store_true")
     p_ev.add_argument("--beam", type=int, default=None,

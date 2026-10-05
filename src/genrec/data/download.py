@@ -55,11 +55,11 @@ def download_with_resume(url, dest, expected_bytes=None, retries=3):
                             break
                         f.write(block)
             if expected_bytes is not None and part.stat().st_size != expected_bytes:
-                raise IOError(
+                raise OSError(
                     f"size mismatch: {part.stat().st_size} != {expected_bytes}")
             part.replace(dest)
             return dest
-        except Exception as exc:  # noqa: BLE001 - 重试次数用尽后向上抛出
+        except Exception as exc:
             print(f"[download] attempt {attempt}/{retries} failed: {exc}")
             if attempt == retries:
                 raise

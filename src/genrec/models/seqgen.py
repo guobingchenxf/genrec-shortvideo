@@ -14,7 +14,7 @@
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
 PAD, BOS = 0, 1
 
@@ -99,7 +99,7 @@ class SidTokenizer:
 class RawTokenizer:
     def __init__(self, video_ids, n_actions=5):
         self.video_ids = np.asarray(video_ids, dtype=np.int64)
-        self.n_videos = int(len(self.video_ids))
+        self.n_videos = len(self.video_ids)
         self.n_actions = n_actions
         self.vocab_size = 2 + self.n_videos + n_actions
         self.index_of = {int(v): i for i, v in enumerate(self.video_ids)}
@@ -175,7 +175,7 @@ class NextTokenLM(nn.Module):
         self.head = nn.Linear(d_model, vocab_size)
 
     def forward(self, x):
-        B, T = x.shape
+        _, T = x.shape
         if T > self.max_len:
             raise ValueError(f"sequence length {T} exceeds max_len {self.max_len}")
         pos = torch.arange(T, device=x.device)

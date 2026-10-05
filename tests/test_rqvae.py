@@ -26,7 +26,7 @@ def test_quantizer_returns_straight_through_tensor():
     torch.manual_seed(0)
     vq = VectorQuantizer(dim=4, codebook_size=8)
     z = torch.randn(3, 4, requires_grad=True)
-    idx, q_st, loss = vq(z)
+    idx, q_st, _loss = vq(z)
     assert q_st.shape == z.shape
     # STE 张量：前向值等于码本向量（数值上 q_st == q）
     q = vq.embedding(idx)

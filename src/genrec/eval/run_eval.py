@@ -20,8 +20,13 @@ import torch
 
 from genrec.eval import baselines
 from genrec.eval.metrics import evaluate_lists
-from genrec.models.seqgen import (NextTokenLM, RawTokenizer, SidTokenizer,
-                                  beam_next_raw, beam_search_sid)
+from genrec.models.seqgen import (
+    NextTokenLM,
+    RawTokenizer,
+    SidTokenizer,
+    beam_next_raw,
+    beam_search_sid,
+)
 from genrec.utils.monitor import save_json
 
 METHOD_VARIANT = {"gen-sid": "sid", "gen-sid-v2": "sid-v2",
@@ -36,7 +41,7 @@ def _load_eval(cfg, smoke):
     ev = np.load(processed / f"eval_contexts{suffix}.npz")
     tg_raw = json.loads(
         (processed / f"eval_targets{suffix}.json").read_text(encoding="utf-8"))
-    targets = {int(k): set(int(v) for v in vs)
+    targets = {int(k): {int(v) for v in vs}
                for k, vs in tg_raw["targets"].items()}
     video_ids = np.load(processed / f"video_vocab{suffix}.npz")["video_ids"]
     n = len(ev["user_ids"])
@@ -93,8 +98,12 @@ def run(cfg, methods=None, smoke=False, beam=None):
         _load_eval(cfg, smoke)
     experiments = cfg.root / "results" / "experiments"
     experiments.mkdir(parents=True, exist_ok=True)
+    # 基线缓存基于"正式全量词表"构建；smoke 模式下 eval 词表更小，
+    # 基线一侧需回退到全量词表对齐（正式模式下两者相同）
+    full_vids = np.load(
+        cfg.path("paths", "processed_dir") / "video_vocab.npz")["video_ids"]
     # 统一排除规则：所有方法在排序/生成后剔除用户 context 中的已看视频
-    bans = [set(int(v) for v in contexts[i][mask[i]])
+    bans = [{int(v) for v in contexts[i][mask[i]]}
             for i in range(len(contexts))]
 
     results = {}
@@ -102,9 +111,9 @@ def run(cfg, methods=None, smoke=False, beam=None):
         t0 = time.perf_counter()
         if m == "pop":
             cache = baselines.load_cache(cfg)
-            lists = baselines.pop_lists(cache["pop"], video_ids, bans)
+            lists = baselines.pop_lists(cache["pop"], full_vids, bans)
         elif m == "itemcf":
-            lists = baselines.itemcf_lists(cfg, contexts, mask, video_ids, bans)
+            lists = baselines.itemcf_lists(cfg, contexts, mask, full_vids, bans)
         elif m in METHOD_VARIANT:
             raw_lists = _generate_lists(cfg, METHOD_VARIANT[m], contexts,
                                         actions, mask, video_ids, suffix,
@@ -118,7 +127,7 @@ def run(cfg, methods=None, smoke=False, beam=None):
         key = m if beam is None else f"{m}@beam{beam}"
         fname = m if beam is None else f"{m}_beam{beam}"
         metrics.update({
-            "n_users": int(len(user_ids)),
+            "n_users": len(user_ids),
             "eval_wall_seconds": round(wall, 1),
             "ms_per_user": round(wall * 1000.0 / max(1, len(user_ids)), 2),
             "smoke": smoke,

@@ -13,7 +13,7 @@ def run(cfg, user_id, topk=10, beam=10):
     import sys
     try:  # Windows 控制台默认 GBK，无法显示中文标题时切换为 UTF-8
         sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
+    except Exception:  # noqa: BLE001, S110 - 仅影响显示编码，失败则保持默认
         pass
     processed = cfg.path("paths", "processed_dir")
     ev = np.load(processed / "eval_contexts.npz")

@@ -10,8 +10,12 @@ import numpy as np
 import torch
 
 from genrec.models import rqvae as rqvae_mod
-from genrec.models.seqgen import (NextTokenLM, RawTokenizer, SidTokenizer,
-                                  build_training_sequences)
+from genrec.models.seqgen import (
+    NextTokenLM,
+    RawTokenizer,
+    SidTokenizer,
+    build_training_sequences,
+)
 from genrec.utils.monitor import save_json
 
 VARIANTS = {"sid": True, "sid-v2": True, "raw": False, "raw-gru": False}

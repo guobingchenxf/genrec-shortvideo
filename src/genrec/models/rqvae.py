@@ -12,8 +12,8 @@ from collections import defaultdict
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from genrec.utils.monitor import save_json
 
@@ -73,7 +73,7 @@ class RQVAE(nn.Module):
         quantized = 0.0
         vq_loss = 0.0
         for layer in self.quantizers:
-            idx, q, loss = layer(residual)
+            _idx, q, loss = layer(residual)
             residual = residual - q
             quantized = quantized + q
             vq_loss = vq_loss + loss
@@ -96,7 +96,7 @@ def _restart_dead_codes(model, x, codebook_size, threshold=1):
             if len(dead) > 0:
                 pool = residual[torch.randint(0, len(residual), (len(dead),))]
                 layer.embedding.weight.data[dead] = pool
-                n_restarted += int(len(dead))
+                n_restarted += len(dead)
             residual = residual - q
     model.train()
     return n_restarted
@@ -193,11 +193,11 @@ def build_sid_table(video_ids, codes, popularity=None):
             idxs = sorted(idxs, key=lambda i: -float(popularity[i]))
         sid_to_videos[key] = idxs
     stats = {
-        "n_videos": int(len(video_ids)),
+        "n_videos": len(video_ids),
         "levels": int(codes.shape[1]),
         "codebook_size": 256,
-        "unique_sids": int(len(groups)),
-        "collision_groups": int(len(collisions)),
+        "unique_sids": len(groups),
+        "collision_groups": len(collisions),
         "collided_videos": int(sum(len(v) for v in collisions.values())),
         "max_group_size": int(max(len(v) for v in groups.values())),
         "collision_rate": float(sum(len(v) for v in collisions.values()) / len(video_ids)),
@@ -211,7 +211,6 @@ def run(cfg, smoke=False, tag=None):
     tag：实验标签（如 "v2" 表示扩大码本的改进版本），用于区分产物文件名；
     配置取 models.rqvae 并按 models.rqvae_<tag> 覆盖（若存在）。
     """
-    import time
 
     from genrec.utils.monitor import StepTimer
 
@@ -242,10 +241,10 @@ def run(cfg, smoke=False, tag=None):
     timer.start("encode_and_table")
     normed = ((feats - scaler["mean"]) / scaler["std"]).astype(np.float32)
     codes = encode_all(model, normed)
-    sid_to_videos, sid_stats = build_sid_table(video_ids, codes)
+    _, sid_stats = build_sid_table(video_ids, codes)
     sid_stats["codebook_size"] = int(rqvae_cfg["codebook_size"])
     sid_stats["code_usage_per_level"] = [
-        int(len(set(codes[:, lv].tolist()))) for lv in range(codes.shape[1])]
+        len(set(codes[:, lv].tolist())) for lv in range(codes.shape[1])]
     sid_stats["feature_normalization"] = "standardized (mean/std saved in checkpoint)"
     sid_stats["tag"] = tag
 
