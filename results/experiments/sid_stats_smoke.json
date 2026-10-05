@@ -1,0 +1,37 @@
+{
+  "n_videos": 8202,
+  "levels": 3,
+  "codebook_size": 256,
+  "unique_sids": 28,
+  "collision_groups": 19,
+  "collided_videos": 8193,
+  "max_group_size": 8043,
+  "collision_rate": 0.9989027066569129,
+  "smoke": true,
+  "train_log_tail": [
+    {
+      "epoch": 28,
+      "loss": 0.004922,
+      "recon": 0.004912,
+      "vq": 9e-06
+    },
+    {
+      "epoch": 29,
+      "loss": 0.004919,
+      "recon": 0.004909,
+      "vq": 1e-05
+    },
+    {
+      "epoch": 30,
+      "loss": 0.004993,
+      "recon": 0.004978,
+      "vq": 1.5e-05
+    }
+  ],
+  "timings_seconds": {
+    "load_features": 0.03,
+    "train_rqvae": 38.81,
+    "encode_and_table": 0.3,
+    "save": 0.02
+  }
+}

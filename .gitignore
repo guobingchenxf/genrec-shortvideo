@@ -9,6 +9,9 @@ __pycache__/
 data/raw/
 data/processed/
 
+# model checkpoints are not committed (results/experiments logs ARE committed)
+results/models/
+
 # temp / logs
 *.part
 *.log

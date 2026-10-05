@@ -140,23 +140,31 @@ def build_small_eval(df_small, seq_len, context_ratio):
         lo_tgt.append(int(vids[-1]))
         lo_users.append(int(uid))
 
-    def _pad(seqs, dtype, fill=0):
+    def _pad_with_mask(seqs, dtype, fill=0):
         L = seq_len
         out = np.full((len(seqs), L), fill, dtype=dtype)
+        mask = np.zeros((len(seqs), L), dtype=bool)
         for i, s in enumerate(seqs):
             m = len(s)
             if m:
                 out[i, L - m:] = s
-        return out
+                mask[i, L - m:] = True
+        return out, mask
 
+    ctx_mat, ctx_mask = _pad_with_mask(ctx_list, np.int32)
+    ctx_act_mat, _ = _pad_with_mask(ctx_act_list, np.int8)
     eval_arrays = {
-        "context_videos": _pad(ctx_list, np.int32),
-        "context_actions": _pad(ctx_act_list, np.int8),
+        "context_videos": ctx_mat,
+        "context_actions": ctx_act_mat,
+        "context_mask": ctx_mask,
         "user_ids": np.asarray(users_out, dtype=np.int32),
     }
+    lo_mat, lo_mask = _pad_with_mask(lo_ctx, np.int32)
+    lo_act_mat, _ = _pad_with_mask(lo_act, np.int8)
     leave_one = {
-        "context_videos": _pad(lo_ctx, np.int32),
-        "context_actions": _pad(lo_act, np.int8),
+        "context_videos": lo_mat,
+        "context_actions": lo_act_mat,
+        "context_mask": lo_mask,
         "target_videos": np.asarray(lo_tgt, dtype=np.int32),
         "user_ids": np.asarray(lo_users, dtype=np.int32),
     }

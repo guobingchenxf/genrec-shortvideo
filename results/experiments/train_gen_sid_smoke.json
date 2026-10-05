@@ -1,0 +1,33 @@
+{
+  "variant": "sid",
+  "smoke": true,
+  "samples": 2048,
+  "seq_len": 84,
+  "vocab_size": 775,
+  "max_items": 20,
+  "device": "cpu",
+  "seed": 42,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 128,
+    "epochs": 2,
+    "lr": 0.001,
+    "seed": 42,
+    "beam_size": 50,
+    "eval_batch_users": 32,
+    "num_threads": 8,
+    "backbone": "transformer",
+    "d_model": 128,
+    "n_layers": 2,
+    "n_heads": 4
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 1.236996,
+      "wall_seconds": 67.1,
+      "batches": 32,
+      "samples_per_second": 30.5
+    }
+  ]
+}

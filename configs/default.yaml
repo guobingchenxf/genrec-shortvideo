@@ -46,7 +46,7 @@ preprocess:
   seed: 42
   seq_len: 50
   max_samples_per_user: 100     # 每用户最多取多少个训练样本（取最近的行为）
-  max_train_samples: 300000     # 全局训练样本上限（阶段3 按实测速度再调，改动需记录）
+  max_train_samples: 150000     # 全局训练样本上限（实测 4 线程 ~206 samples/s，1 epoch ≈ 12 分钟）
   watch_ratio_buckets: [0.2, 0.5, 1.0, 2.0]   # 行为 token 分桶边界 -> 5 档（下标 0..4）
   time_split_quantile: 0.9      # 大矩阵全局时间切分：前 90% 训练 / 后 10% 验证
   eval:
@@ -56,3 +56,32 @@ preprocess:
     tfidf_max_features: 50000
     tfidf_min_df: 2
     svd_dim: 64
+
+models:
+  rqvae:                        # 语义 ID：内容特征 -> 层次 RQ-VAE
+    hidden: 128
+    latent_dim: 32
+    levels: 3
+    codebook_size: 256
+    commit_weight: 0.25
+    epochs: 600
+    batch_size: 1024
+    lr: 0.001
+    restart_every: 100          # 每 N 轮重启死码字（防码本坍缩）
+    seed: 42
+  gen:                          # 生成式序列模型（因果 LM 训练，beam 受限解码）
+    max_context_items: 20       # 生成器使用的最近行为数（从预处理 context 截取尾部）
+    batch_size: 256
+    epochs: 1
+    lr: 0.001
+    seed: 42
+    beam_size: 50
+    eval_batch_users: 32
+    num_threads: 4              # 实测：8 线程 19 samples/s，4 线程 206 samples/s（小模型线程超订）
+    variants:
+      sid:     {backbone: transformer, d_model: 128, n_layers: 2, n_heads: 4}
+      raw:     {backbone: transformer, d_model: 128, n_layers: 2, n_heads: 4}
+      raw-gru: {backbone: gru, d_model: 64, n_layers: 1, lr: 0.002}
+  itemcf:
+    max_items_per_user: 100      # 训练窗口内每用户参与共现构建的最近物品数
+    top_context_items: 50        # 评估时用户 context 参与打分的最近物品数

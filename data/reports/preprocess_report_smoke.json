@@ -43,24 +43,24 @@
   "content_svd_explained_variance": 0.3356322486951641,
   "video_vocab_size": 8202,
   "timings_seconds": {
-    "load_matrices": 0.49,
-    "time_split": 0.03,
-    "build_small_eval": 0.04,
-    "build_train_samples": 0.31,
-    "build_val_samples": 0.06,
-    "content_features": 12.59,
-    "save_artifacts": 0.4
+    "load_matrices": 0.43,
+    "time_split": 0.02,
+    "build_small_eval": 0.03,
+    "build_train_samples": 0.37,
+    "build_val_samples": 0.09,
+    "content_features": 10.17,
+    "save_artifacts": 0.33
   },
   "memory": {
     "wall_seconds": {
-      "load_matrices": 0.49,
-      "time_split": 0.03,
-      "build_small_eval": 0.04,
-      "build_train_samples": 0.31,
-      "build_val_samples": 0.06,
-      "content_features": 12.59,
-      "save_artifacts": 0.4
+      "load_matrices": 0.43,
+      "time_split": 0.02,
+      "build_small_eval": 0.03,
+      "build_train_samples": 0.37,
+      "build_val_samples": 0.09,
+      "content_features": 10.17,
+      "save_artifacts": 0.33
     },
-    "peak_rss_mb_at_step_boundaries": 225.9
+    "peak_rss_mb_at_step_boundaries": 228.2
   }
 }

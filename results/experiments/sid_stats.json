@@ -1,0 +1,43 @@
+{
+  "n_videos": 10728,
+  "levels": 3,
+  "codebook_size": 256,
+  "unique_sids": 7699,
+  "collision_groups": 1179,
+  "collided_videos": 4208,
+  "max_group_size": 37,
+  "collision_rate": 0.39224459358687547,
+  "code_usage_per_level": [
+    256,
+    256,
+    256
+  ],
+  "feature_normalization": "standardized (mean/std saved in checkpoint)",
+  "smoke": false,
+  "train_log_tail": [
+    {
+      "epoch": 598,
+      "loss": 0.475498,
+      "recon": 0.061437,
+      "vq": 0.414061
+    },
+    {
+      "epoch": 599,
+      "loss": 0.476968,
+      "recon": 0.061804,
+      "vq": 0.415164
+    },
+    {
+      "epoch": 600,
+      "loss": 0.47432,
+      "recon": 0.061437,
+      "vq": 0.412883
+    }
+  ],
+  "timings_seconds": {
+    "load_features": 0.04,
+    "train_rqvae": 416.53,
+    "encode_and_table": 0.78,
+    "save": 0.06
+  }
+}

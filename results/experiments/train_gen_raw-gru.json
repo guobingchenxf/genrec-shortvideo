@@ -1,0 +1,32 @@
+{
+  "variant": "raw-gru",
+  "smoke": false,
+  "samples": 150000,
+  "seq_len": 42,
+  "vocab_size": 10735,
+  "max_items": 20,
+  "device": "cpu",
+  "seed": 42,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 256,
+    "epochs": 1,
+    "lr": 0.002,
+    "seed": 42,
+    "beam_size": 50,
+    "eval_batch_users": 32,
+    "num_threads": 4,
+    "backbone": "gru",
+    "d_model": 64,
+    "n_layers": 1
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 4.706415,
+      "wall_seconds": 843.2,
+      "batches": 586,
+      "samples_per_second": 177.9
+    }
+  ]
+}

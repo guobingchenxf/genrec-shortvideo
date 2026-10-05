@@ -58,6 +58,36 @@ python -m genrec.cli prepare --smoke   # 小规模 dry-run（产物带 _smoke �
 pytest -q                              # 单元测试（仅用合成小数据）
 ```
 
+## 模型与训练
+
+- **语义 ID（RQ-VAE）**：内容特征（标题+类目 → 字符 n-gram TF-IDF → SVD 64 维）
+  经标准化后训练 3 级 RQ-VAE（每级码本 256；直通估计 STE + 每 100 轮死码重启）。
+  实测：10,728 个视频 → 7,699 个唯一 SID，三级码本均全激活；
+  碰撞组（多视频共享同一 SID）在解码时按序展开，碰撞率如实记录在 `sid_stats.json`。
+- **生成式序列模型（core）**：因果 Transformer 解码器（d=128、2 层、4 头）。
+  Token 序列 = [BOS] + Σ[L 个 SID token + 1 个行为 token] + 目标物品 SID；
+  训练目标 = 下一个 token 交叉熵（PAD 忽略）；推理 = **trie 受限解码 + beam search**，
+  只生成合法 SID 前缀，beam 内展开碰撞组并按序去重。
+- **基线与对照**：gen-raw（同架构直接生成原生 video token）、
+  gru-raw（GRU4Rec-lite 风格单层 GRU）、流行度 Top-50、ItemCF。
+- 训练速度实测（本机 8 核 CPU）：**4 线程约 200 samples/s**（150k 样本 1 epoch ≈ 12 分钟）；
+  8 线程因线程超订降到 19 samples/s——参数已固化在 `configs/default.yaml` 注释中。
+
+## 完整复现（命令序列）
+
+```bash
+python -m genrec.cli download && python -m genrec.cli validate
+python -m genrec.cli prepare
+python -m genrec.cli train-rqvae
+python -m genrec.cli train-gen --variant sid
+python -m genrec.cli train-gen --variant raw
+python -m genrec.cli train-gen --variant raw-gru
+python -m genrec.cli evaluate --methods pop,itemcf,gen-sid,gen-raw,gru-raw
+python -m genrec.cli generate --user-id 0 --topk 10
+```
+
+主表输出：`results/experiments/main_table.json`；单方法结果：`eval_<method>.json`。
+
 ## 目录
 
 ```
@@ -79,4 +109,9 @@ docs/             实验报告与面试材料（后续阶段）
 - **评估**：稠密小矩阵按时间切 80% / 20%——前 80% 行为作 context，
   后 20% 视频集合作 targets，在全量视频空间计算 Recall@K / NDCG@K。
   稠密矩阵的"全观测"性质使该评估**无曝光偏差**（与稀疏数据只能采样负样本有本质区别）。
+- **候选排除**：所有方法统一排除用户 context 中的已看视频（ItemCF 相似度对角线置零）；
+  NDCG 的分母 DCG 上限为 min(K, |targets|)（本数据集 targets 较大，约 600+ 视频/用户）。
 - 行为 token：watch_ratio 五档分桶（官方建议 like ≈ watch_ratio > 2.0）。
+- **两个协议的统计特性要如实理解**：该数据集用户密度极高（人均 3000+ 交互），
+  "预测下一时段观看集合"对内容相似型方法（ItemCF）天然友好——
+  指标绝对值不宜与其他稀疏数据集的论文数字直接比较，跨方法相对比较才是有意义的信号。
