@@ -1,0 +1,16 @@
+# Core scientific stack (keep numpy<2 to match this machine's known-good ABI set)
+numpy==1.26.4
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+PyYAML>=6.0
+
+# Testing
+pytest>=7.4
+
+# Resource measurement only (used to log real memory usage in pipeline reports)
+psutil>=5.9
+
+# torch (CPU build, ~200MB) is NOT listed here on purpose.
+# Install separately to avoid pulling the CUDA wheel from PyPI:
+#   pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu

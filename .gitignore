@@ -1,0 +1,18 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# data: raw downloads and processed artifacts are not committed
+data/raw/
+data/processed/
+
+# temp / logs
+*.part
+*.log
+
+# OS
+Thumbs.db
+Desktop.ini

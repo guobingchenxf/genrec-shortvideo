@@ -1,0 +1,66 @@
+{
+  "smoke": true,
+  "note": "smoke artifacts: pipeline validation only, NOT for official experimental conclusions",
+  "seed": 42,
+  "seq_len": 50,
+  "watch_ratio_buckets": [
+    0.2,
+    0.5,
+    1.0,
+    2.0
+  ],
+  "time_split": {
+    "quantile": 0.9,
+    "t0": 1598866812.1484,
+    "t0_readable": "2020-08-31 09:40:12.148400068"
+  },
+  "big_matrix_rows_used": 300000,
+  "small_matrix_rows_used": 48126,
+  "rows_dropped_nan_key_fields": {
+    "big": 0,
+    "small": 1874
+  },
+  "train_stats": {
+    "candidates_before_subsample": 16100,
+    "samples": 16100,
+    "sampled": false,
+    "users_with_samples": 161
+  },
+  "val_stats": {
+    "candidates_before_subsample": 3000,
+    "samples": 3000,
+    "sampled": false,
+    "users_with_samples": 150
+  },
+  "eval_users": 16,
+  "eval_target_pairs_excluded_from_train": 9627,
+  "content_coverage": {
+    "with_caption": 8202,
+    "with_categories": 8177,
+    "empty": 0,
+    "total_videos": 8202
+  },
+  "content_svd_explained_variance": 0.3356322486951641,
+  "video_vocab_size": 8202,
+  "timings_seconds": {
+    "load_matrices": 0.49,
+    "time_split": 0.03,
+    "build_small_eval": 0.04,
+    "build_train_samples": 0.31,
+    "build_val_samples": 0.06,
+    "content_features": 12.59,
+    "save_artifacts": 0.4
+  },
+  "memory": {
+    "wall_seconds": {
+      "load_matrices": 0.49,
+      "time_split": 0.03,
+      "build_small_eval": 0.04,
+      "build_train_samples": 0.31,
+      "build_val_samples": 0.06,
+      "content_features": 12.59,
+      "save_artifacts": 0.4
+    },
+    "peak_rss_mb_at_step_boundaries": 225.9
+  }
+}

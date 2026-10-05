@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-10-05T07:37:10.031115+00:00",
+  "data_dir": "data\\raw\\kuairec",
+  "checks": {
+    "big_matrix": {
+      "name": "big",
+      "rows": 12530806,
+      "users": 7176,
+      "videos": 10728,
+      "nan_user_id": 0,
+      "nan_video_id": 0,
+      "nan_timestamp": 0,
+      "nan_watch_ratio": 0,
+      "watch_ratio_min": 0.0,
+      "watch_ratio_max": 573.4571533203125,
+      "watch_ratio_p999": 18.02712631225586,
+      "watch_ratio_gt_50": 2194,
+      "like_ratio_wr_gt_2": 0.07472703671256263,
+      "timestamp_min": "2020-06-23 00:34:11.372999907",
+      "timestamp_max": "2020-09-09 23:32:12.427000046"
+    },
+    "small_matrix": {
+      "name": "small",
+      "rows": 4676570,
+      "users": 1411,
+      "videos": 3327,
+      "nan_user_id": 0,
+      "nan_video_id": 0,
+      "nan_timestamp": 181992,
+      "nan_watch_ratio": 0,
+      "watch_ratio_min": 0.0,
+      "watch_ratio_max": 571.5214233398438,
+      "watch_ratio_p999": 12.152855183603254,
+      "watch_ratio_gt_50": 589,
+      "like_ratio_wr_gt_2": 0.04643894991414648,
+      "timestamp_min": "2020-07-03 18:23:26.059999943",
+      "timestamp_max": "2020-09-05 15:57:23.683000088"
+    },
+    "overlap": {
+      "small_users_in_big": 1411,
+      "small_users_total": 1411,
+      "small_videos_in_big": 3327,
+      "small_videos_total": 3327
+    },
+    "content_coverage": {
+      "target_videos": 10728,
+      "with_caption": 9372,
+      "with_categories": 10683,
+      "with_either": 10724,
+      "with_neither": 4
+    }
+  },
+  "errors": [],
+  "warnings": [
+    "big: 2194 rows with watch_ratio>50 (max 573.5) - known property (replay loops); behavior bucketing caps at the top bucket",
+    "small: 181992 rows (3.89%) lack timestamp - known data property; excluded in preprocess (counted in manifest)",
+    "small: 589 rows with watch_ratio>50 (max 571.5) - known property (replay loops); behavior bucketing caps at the top bucket"
+  ],
+  "timings_seconds": {
+    "load_big": 13.68,
+    "load_small": 5.31,
+    "validate_frames": 1.15,
+    "cross_checks": 0.44,
+    "content_coverage": 0.25
+  },
+  "ok": true
+}

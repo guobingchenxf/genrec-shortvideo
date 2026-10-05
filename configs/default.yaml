@@ -1,0 +1,58 @@
+# GenRec-ShortVideo 默认配置
+# 所有路径相对项目根目录；修改配置即可切换数据/产物位置，代码中不做硬编码。
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  reports_dir: data/reports
+
+data:
+  dir_name: kuairec
+  # 下载路线（2026-10-05 本机实测后制定）：
+  # - 官方 Zenodo 整包（432MB）直链实测约 42 KB/s（需数小时），不用于自动下载；
+  #   官方完整包的手动获取方式见 README。
+  # - 默认路线：big/small 矩阵走 HF 镜像（同一数据集的非官方镜像，
+  #   下载后按官方统计口径严格校验规模与范围后再使用）；
+  #   caption / raw categories 走官方 Zenodo 小文件直链。
+  files:
+    big_matrix.csv:
+      url: "https://hf-mirror.com/datasets/hiiamkik/kuai-rec-data/resolve/main/big_matrix.csv.gz"
+      gz: true
+      compressed_bytes: 344943133
+      source: "hf-mirror.com (unofficial mirror; content validated against official stats)"
+    small_matrix.csv:
+      url: "https://hf-mirror.com/datasets/hiiamkik/kuai-rec-data/resolve/main/small_matrix.csv.gz"
+      gz: true
+      compressed_bytes: 138666583
+      source: "hf-mirror.com (unofficial mirror; content validated against official stats)"
+    kuairec_caption_category.csv:
+      url: "https://zenodo.org/records/18164998/files/kuairec_caption_category.csv"
+      gz: false
+      compressed_bytes: 1964578
+      source: "zenodo.org official record 18164998"
+    video_raw_categories_multi.csv:
+      url: "https://zenodo.org/records/18164998/files/video_raw_categories_multi.csv"
+      gz: false
+      compressed_bytes: 1724451
+      source: "zenodo.org official record 18164998"
+  official_zip_manual_url: "https://zenodo.org/records/18164998/files/KuaiRec.zip"
+
+validate:
+  # 官方 README 报告的口径（2026-10-05 实读），校验不一致必须报错
+  expected_big:   {users: 7176,  videos: 10728, rows: 12530806}
+  expected_small: {users: 1411,  videos: 3327,  rows: 4676570}
+
+preprocess:
+  seed: 42
+  seq_len: 50
+  max_samples_per_user: 100     # 每用户最多取多少个训练样本（取最近的行为）
+  max_train_samples: 300000     # 全局训练样本上限（阶段3 按实测速度再调，改动需记录）
+  watch_ratio_buckets: [0.2, 0.5, 1.0, 2.0]   # 行为 token 分桶边界 -> 5 档（下标 0..4）
+  time_split_quantile: 0.9      # 大矩阵全局时间切分：前 90% 训练 / 后 10% 验证
+  eval:
+    context_ratio: 0.8          # 小矩阵评估协议：前 80% 行为做 context，后 20% 视频集合做 targets
+  content:
+    tfidf_ngram_range: [2, 3]   # 中文字符 n-gram
+    tfidf_max_features: 50000
+    tfidf_min_df: 2
+    svd_dim: 64

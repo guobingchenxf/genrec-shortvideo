@@ -1,0 +1,43 @@
+{
+  "dataset": "KuaiRec (Kuaishou short-video recommendation, CIKM 2022)",
+  "route_note": "Default route: big/small matrices from hf-mirror.com (unofficial mirror of the same dataset; validated against official statistics by `validate`), caption/raw-categories from official Zenodo. Official zip measured ~42 KB/s from this network on 2026-10-05; manual official route documented in README.",
+  "files": {
+    "big_matrix.csv": {
+      "url": "https://hf-mirror.com/datasets/hiiamkik/kuai-rec-data/resolve/main/big_matrix.csv.gz",
+      "source": "hf-mirror.com (unofficial mirror; content validated against official stats)",
+      "was_cached": true,
+      "compressed_bytes_on_disk": 344943133,
+      "sha256_of_local_file": "98c8fa0b7a276b59f3a44a382933a62ab6f7e32d64570ae005f4b2483aee9813",
+      "decompressed_bytes": 1083521226,
+      "wall_seconds": 0.64
+    },
+    "small_matrix.csv": {
+      "url": "https://hf-mirror.com/datasets/hiiamkik/kuai-rec-data/resolve/main/small_matrix.csv.gz",
+      "source": "hf-mirror.com (unofficial mirror; content validated against official stats)",
+      "was_cached": true,
+      "compressed_bytes_on_disk": 138666583,
+      "sha256_of_local_file": "22370e0d1bf3be1d34b8a15ac4cb11fb44581766b29451ffc8e144573d672236",
+      "decompressed_bytes": 406155844,
+      "wall_seconds": 0.26
+    },
+    "kuairec_caption_category.csv": {
+      "url": "https://zenodo.org/records/18164998/files/kuairec_caption_category.csv",
+      "source": "zenodo.org official record 18164998",
+      "was_cached": true,
+      "compressed_bytes_on_disk": 1964578,
+      "sha256_of_local_file": "08f6ec40059c5a7ecdcebf615d080d9cf8f59f9497f6d66e8d5ccabdc7cab2d9",
+      "decompressed_bytes": 1964578,
+      "wall_seconds": 0.01
+    },
+    "video_raw_categories_multi.csv": {
+      "url": "https://zenodo.org/records/18164998/files/video_raw_categories_multi.csv",
+      "source": "zenodo.org official record 18164998",
+      "was_cached": true,
+      "compressed_bytes_on_disk": 1724451,
+      "sha256_of_local_file": "4cfde4bf7c37bcef31f68a164d5832aa6ee7d10fdd8f48434256e33292a448d5",
+      "decompressed_bytes": 1724451,
+      "wall_seconds": 0.0
+    }
+  },
+  "total_wall_seconds": 0.92
+}
