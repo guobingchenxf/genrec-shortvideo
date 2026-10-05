@@ -205,8 +205,12 @@ def build_sid_table(video_ids, codes, popularity=None):
     return sid_to_videos, stats
 
 
-def run(cfg, smoke=False):
-    """完整流程：读取内容特征 -> 训练 RQ-VAE -> 导出 SID 表与统计。"""
+def run(cfg, smoke=False, tag=None):
+    """完整流程：读取内容特征 -> 训练 RQ-VAE -> 导出 SID 表与统计。
+
+    tag：实验标签（如 "v2" 表示扩大码本的改进版本），用于区分产物文件名；
+    配置取 models.rqvae 并按 models.rqvae_<tag> 覆盖（若存在）。
+    """
     import time
 
     from genrec.utils.monitor import StepTimer
@@ -218,13 +222,17 @@ def run(cfg, smoke=False):
     experiments.mkdir(parents=True, exist_ok=True)
     models_dir.mkdir(parents=True, exist_ok=True)
 
-    suffix = "_smoke" if smoke else ""
+    tag_part = f"_{tag}" if tag else ""
+    smoke_part = "_smoke" if smoke else ""
+
     timer.start("load_features")
-    data = np.load(processed / f"content_feats{suffix}.npz")
+    data = np.load(processed / f"content_feats{smoke_part}.npz")
     feats = data["feats"]
     video_ids = data["video_ids"]
 
     rqvae_cfg = dict(cfg["models"]["rqvae"])
+    if tag:
+        rqvae_cfg.update(cfg["models"].get(f"rqvae_{tag}", {}))
     if smoke:
         rqvae_cfg["epochs"] = 30  # 干跑只减轮数；保持全部视频与正式流程同构
 
@@ -235,9 +243,11 @@ def run(cfg, smoke=False):
     normed = ((feats - scaler["mean"]) / scaler["std"]).astype(np.float32)
     codes = encode_all(model, normed)
     sid_to_videos, sid_stats = build_sid_table(video_ids, codes)
+    sid_stats["codebook_size"] = int(rqvae_cfg["codebook_size"])
     sid_stats["code_usage_per_level"] = [
         int(len(set(codes[:, lv].tolist()))) for lv in range(codes.shape[1])]
     sid_stats["feature_normalization"] = "standardized (mean/std saved in checkpoint)"
+    sid_stats["tag"] = tag
 
     timer.start("save")
     ckpt = {
@@ -246,19 +256,19 @@ def run(cfg, smoke=False):
         "video_ids": video_ids,
         "scaler": scaler,
     }
-    torch.save(ckpt, models_dir / f"rqvae{suffix}.pt")
-    np.savez_compressed(processed / f"sid_codes{suffix}.npz",
+    torch.save(ckpt, models_dir / f"rqvae{tag_part}{smoke_part}.pt")
+    np.savez_compressed(processed / f"sid_codes{tag_part}{smoke_part}.npz",
                         video_ids=video_ids, codes=codes)
     stats_payload = dict(sid_stats)
     stats_payload["smoke"] = smoke
     stats_payload["train_log_tail"] = train_log[-3:]
     stats_payload["timings_seconds"] = timer.report()["wall_seconds"]
-    save_json(stats_payload, experiments / f"sid_stats{suffix}.json")
+    save_json(stats_payload, experiments / f"sid_stats{tag_part}{smoke_part}.json")
 
     timer.stop()
-    print(f"[rqvae] final loss = {train_log[-1]['loss']:.6f} "
+    print(f"[rqvae] tag={tag} final loss = {train_log[-1]['loss']:.6f} "
           f"(recon={train_log[-1]['recon']:.6f})")
     print(f"[rqvae] SID stats: {sid_stats}")
     print(f"[rqvae] timings: {timer.report()}")
-    print(f"[rqvae] checkpoint -> {models_dir / f'rqvae{suffix}.pt'}")
+    print(f"[rqvae] checkpoint -> {models_dir / f'rqvae{tag_part}{smoke_part}.pt'}")
     return sid_stats

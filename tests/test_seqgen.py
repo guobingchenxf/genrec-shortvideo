@@ -14,7 +14,7 @@ from genrec.models.seqgen import (NextTokenLM, RawTokenizer, SidTokenizer,
 def _sid_tok():
     video_ids = np.array([10, 11, 12, 13])
     codes = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]])
-    return SidTokenizer(video_ids, codes)
+    return SidTokenizer(video_ids, codes, codebook_size=256)
 
 
 def test_sid_trie():
@@ -92,3 +92,14 @@ def test_metrics_known_values():
     assert recall_at_k([5, 6, 7, 8], {6}, 1) == 0.0
     assert abs(ndcg_at_k([5, 6], {5, 6}, 2) - 1.0) < 1e-9
     assert abs(ndcg_at_k([6, 5], {5}, 2) - 1.0 / np.log2(3)) < 1e-9
+
+
+def test_evaluate_lists_hit_rate():
+    from genrec.eval.metrics import evaluate_lists
+    lists = [[1, 2], [3, 4]]
+    targets = {7: {2}, 8: {9}}
+    out = evaluate_lists(lists, targets, [7, 8], catalog_size=10, ks=(1, 2))
+    assert out["hit_rate@1"] == 0.0          # 命中在第 2 位
+    assert out["hit_rate@2"] == 0.5          # 用户 7 命中，用户 8 未命中
+    # 用户 7 的 recall@2 = 1/1，用户 8 = 0；均值 0.5
+    assert abs(out["recall@2"] - 0.5) < 1e-9

@@ -31,22 +31,19 @@ def last_valid_items(videos, mask, actions, max_items):
 # 词表 / 序列化
 # ----------------------------------------------------------------------
 class SidTokenizer:
-    def __init__(self, video_ids, codes, n_actions=5, codebook_size=256,
-                 popularity=None):
+    def __init__(self, video_ids, codes, n_actions=5, codebook_size=None):
         self.video_ids = np.asarray(video_ids, dtype=np.int64)
         self.codes = np.asarray(codes).astype(np.int64)     # (N, levels)
         self.n_levels = int(self.codes.shape[1])
-        self.codebook_size = codebook_size
+        # 码本大小从码字自动推断（2 的幂），保证训练与推理两端词表一致；
+        # 显式传入仅用于测试等特殊场景
+        if codebook_size is None:
+            codebook_size = 2 ** int(np.ceil(np.log2(int(self.codes.max()) + 1)))
+        self.codebook_size = int(codebook_size)
         self.n_actions = n_actions
-        self.vocab_size = 2 + self.n_levels * codebook_size + n_actions
+        self.vocab_size = 2 + self.n_levels * self.codebook_size + n_actions
         self.index_of = {int(v): i for i, v in enumerate(self.video_ids)}
-        if popularity is None:
-            self._order = np.arange(len(self.video_ids))
-        else:
-            self._order = np.argsort(-np.asarray(popularity, dtype=np.float64))
-            rank = np.empty(len(self.video_ids), dtype=np.int64)
-            rank[self._order] = np.arange(len(self.video_ids))
-            self._order = rank
+        self._order = np.arange(len(self.video_ids))
         self._trie = {}
         for i, key in enumerate(map(tuple, self.codes.tolist())):
             node = self._trie

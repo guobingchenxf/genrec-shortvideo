@@ -1,10 +1,12 @@
 {
   "recall@10": 0.0028485265691576126,
   "recall@50": 0.008202097623118128,
+  "hit_rate@10": 0.9822820694542878,
+  "hit_rate@50": 1.0,
   "ndcg@10": 0.19264446280878897,
   "coverage@50": 0.0050335570469798654,
   "n_users": 1411,
-  "eval_wall_seconds": 0.9,
-  "ms_per_user": 0.66,
+  "eval_wall_seconds": 0.8,
+  "ms_per_user": 0.57,
   "smoke": false
 }

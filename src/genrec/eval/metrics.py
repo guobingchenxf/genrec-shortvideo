@@ -36,15 +36,21 @@ def coverage_at_k(lists, k, catalog_size):
 
 
 def evaluate_lists(lists, targets_map, user_ids, catalog_size, ks=(10, 50)):
-    """lists 与 user_ids 对齐；targets_map: {int user_id: set(video_ids)}。"""
+    """lists 与 user_ids 对齐；targets_map: {int user_id: set(video_ids)}。
+
+    输出：recall@K、ndcg@10、hit_rate@K（≥1 命中用户占比）、coverage@maxK。
+    """
     rec = {k: [] for k in ks}
+    hit = {k: [] for k in ks}
     ndcg = []
     for ranked, uid in zip(lists, user_ids):
         tg = targets_map.get(int(uid), set())
         for k in ks:
             rec[k].append(recall_at_k(ranked, tg, k))
+            hit[k].append(1.0 if set(ranked[:k]) & tg else 0.0)
         ndcg.append(ndcg_at_k(ranked, tg, 10))
     out = {f"recall@{k}": float(np.mean(rec[k])) for k in ks}
+    out.update({f"hit_rate@{k}": float(np.mean(hit[k])) for k in ks})
     out["ndcg@10"] = float(np.mean(ndcg))
     out[f"coverage@{max(ks)}"] = float(coverage_at_k(lists, max(ks), catalog_size))
     return out

@@ -69,6 +69,8 @@ models:
     lr: 0.001
     restart_every: 100          # 每 N 轮重启死码字（防码本坍缩）
     seed: 42
+  rqvae_v2:                     # 改进点 C1：扩大码本容量降低 SID 碰撞（256^3 -> 1024^3）
+    codebook_size: 1024
   gen:                          # 生成式序列模型（因果 LM 训练，beam 受限解码）
     max_context_items: 20       # 生成器使用的最近行为数（从预处理 context 截取尾部）
     batch_size: 256
@@ -80,6 +82,7 @@ models:
     num_threads: 4              # 实测：8 线程 19 samples/s，4 线程 206 samples/s（小模型线程超订）
     variants:
       sid:     {backbone: transformer, d_model: 128, n_layers: 2, n_heads: 4}
+      sid-v2:  {backbone: transformer, d_model: 128, n_layers: 2, n_heads: 4}
       raw:     {backbone: transformer, d_model: 128, n_layers: 2, n_heads: 4}
       raw-gru: {backbone: gru, d_model: 64, n_layers: 1, lr: 0.002}
   itemcf:

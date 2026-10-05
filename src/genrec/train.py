@@ -14,23 +14,25 @@ from genrec.models.seqgen import (NextTokenLM, RawTokenizer, SidTokenizer,
                                   build_training_sequences)
 from genrec.utils.monitor import save_json
 
-VARIANTS = {"sid": True, "raw": False, "raw-gru": False}
+VARIANTS = {"sid": True, "sid-v2": True, "raw": False, "raw-gru": False}
+SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2"}
 
 
-def train_rqvae_main(cfg, smoke=False):
-    return rqvae_mod.run(cfg, smoke=smoke)
+def train_rqvae_main(cfg, smoke=False, tag=None):
+    return rqvae_mod.run(cfg, smoke=smoke, tag=tag)
 
 
-def _load_processsed(cfg, smoke):
+def _load_processsed(cfg, smoke, variant):
     processed = cfg.path("paths", "processed_dir")
     suffix = "_smoke" if smoke else ""
     train_npz = np.load(processed / f"train_samples{suffix}.npz")
-    sid_npz = np.load(processed / f"sid_codes{suffix}.npz")
+    sid_file = SID_FILES.get(variant, "sid_codes")
+    sid_npz = np.load(processed / f"{sid_file}{suffix}.npz")
     return suffix, train_npz, sid_npz["video_ids"], sid_npz["codes"]
 
 
 def _build_tokenizer(variant, video_ids, codes):
-    if variant == "sid":
+    if VARIANTS[variant]:  # is_sid：sid 与 sid-v2 都走语义 ID 词表
         return SidTokenizer(video_ids, codes)
     return RawTokenizer(video_ids)
 
@@ -48,7 +50,7 @@ def run_gen(cfg, variant, smoke=False):
     torch.set_num_threads(int(merged.get("num_threads", 8)))
     device = "cpu"
 
-    suffix, train_npz, video_ids, codes = _load_processsed(cfg, smoke)
+    suffix, train_npz, video_ids, codes = _load_processsed(cfg, smoke, variant)
     tok = _build_tokenizer(variant, video_ids, codes)
     max_items = int(merged["max_context_items"])
 
