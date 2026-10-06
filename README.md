@@ -18,7 +18,7 @@
 
 | 问题 | 本项目的答案（见 §7） |
 |---|---|
-| Q1：同架构、同预算下，SID 生成 vs 原生 ID 生成谁更强？ | **初版负结果 → 诊断修复后基本追平**：修正碰撞处理与内容特征后，dense recall@50 达 raw 的 98.5%、采样协议 HR@10 达 97.3%（见 §6） |
+| Q1：同架构、同预算下，SID 生成 vs 原生 ID 生成谁更强？ | **初版负结果 → 诊断修复后追平 → 收敛预算下反超**：修复碰撞与特征后 dense recall@50 达 raw 的 98.5%、采样 HR@10 达 97.3%；同预算 3 epoch 下四项指标全面反超（§6，单种子） |
 | Q2：碰撞率是不是 SID 弱势的主因？ | **是主导因素**：碰撞率 39.2%→22.2%→9.3%→0% 对应 recall@50/raw 比值 40%→65%→76%→**98.5%**（四点剂量-响应） |
 | Q3：什么场景下 SID 生成有独有优势？ | **修正后的答案**：早期的"长尾优势"是碰撞展开的配置副产物（消除碰撞后消失）；长尾覆盖需要显式的多样性/探索机制，不能指望 SID 自动带来 |
 
@@ -83,15 +83,21 @@ python -m genrec.cli validate            # 官方口径校验（行数/用户/�
 python -m genrec.cli prepare             # 预处理（150k 训练样本 + 全观测评估协议 + 内容特征）
 python -m genrec.cli train-rqvae                 # 语义 ID v1（256 码本）
 python -m genrec.cli train-rqvae --tag v2        # 语义 ID v2（1024 码本，改进版）
+python scripts/build_extended_sid.py             # b3：碰撞额外码位（4 级全唯一）
 python -m genrec.cli train-gen --variant sid     # 生成模型（SID v1）
 python -m genrec.cli train-gen --variant sid-v2  # 生成模型（SID v2）
+python -m genrec.cli train-gen --variant sid-b1  # 生成模型（神经特征 bge）
+python -m genrec.cli train-gen --variant sid-b3  # 生成模型（碰撞额外码位）
 python -m genrec.cli train-gen --variant raw     # 对照：原生 ID 生成
 python -m genrec.cli train-gen --variant raw-gru # 基线：GRU4Rec-lite
-python -m genrec.cli evaluate            # 六方法主表（results/experiments/main_table.json）
+python -m genrec.cli evaluate            # 主表：默认六方法（增量合并进 main_table.json）
+python -m genrec.cli evaluate --methods gen-sid-b1,gen-sid-b3   # 补 B 组两行
 python -m genrec.cli evaluate --methods gen-sid,gen-sid-v2 --beam 10   # beam 消融
+python -m genrec.cli evaluate-sampled    # 标准协议（--methods 追加 gen-sid-b1,gen-sid-b3）
 python -m genrec.cli generate --user-id 14 --topk 10   # 单用户生成 demo
 python scripts/analyze_buckets.py        # 长尾/冷启动分桶分析
-pytest -q                                # 24 项测试（仅用合成数据）
+python scripts/run_convergence_campaign.py   # 收敛/种子战役：3 epoch + 种子方差（约 6.8h）
+pytest -q                                # 32 项测试（仅用合成数据）
 ```
 
 常用干跑（不产正式结论）：`prepare --smoke` / `train-rqvae --smoke` / `train-gen ... --smoke` /
@@ -118,14 +124,25 @@ pytest -q                                # 24 项测试（仅用合成数据）
 |---|---|---|---|---|---|---|---|---|---|
 | HR@10 | 0.092 | 0.159 | 0.517 | 0.292 | 0.411 | 0.426 | **0.470** | 0.483 | 0.501 |
 
-**四条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
+**训练预算与种子方差（2026-10-07 实测；详见实验报告 §6.6）**：
+
+- **3 epoch 同预算（seed 42）**：sid-b3 四项全面领先 raw-e3——dense recall@50 **0.03915 vs 0.03393（+15.4%）**、
+  dense ndcg@10 **0.5714 vs 0.4580（+24.7%）**、采样 HR@10 0.5065 vs 0.4990（+1.5%）、采样 NDCG@10 0.2957 vs 0.2910（+1.6%）；
+  且 sid-b3 随预算持续增益（1→3 epoch：+3.7% / +10.3% / +7.9% / +10.5%），raw 稠密两项回落（-11.5% / -7.8%）。
+- **1 epoch 种子方差（seed 42/43/44，b3−raw 配对差）**：dense recall@50 **-0.046±0.083pp（在噪声内）**；
+  dense ndcg@10 **+1.77±0.45pp（稳定为正）**；采样 HR@10 **-1.92±0.56pp（稳定小劣势）**——
+  "未追平"只剩采样协议上一笔小额可测劣势，扩大预算后被反超。
+
+**五条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
 修复后，**b3 在两个协议上基本追平原生 ID**（dense recall@50 达 raw 的 98.5%、ndcg@10 反超 4%；
 采样协议 HR@10 达 raw 的 97.3%）；
 **② 碰撞率是主导因素**——碰撞率 39.2%→22.2%→9.3%→0% 对应 recall@50/raw 的
 40%→65%→76%→**98.5%**（四点剂量-响应，跨协议一致）；
 **③ 长尾发现的修正**——早期版本的长尾覆盖部分来自"碰撞展开任意取成员"的副产物，
 消除碰撞后消失（8.0%→0.26%）；语义 ID 生成本身不自动带来长尾覆盖（详见实验报告 §6.5）；
-**④ 方法论发现**——协议会改变方法排序（稠密协议下 ItemCF 断层第一，标准协议下与序列模型同档）。
+**④ 方法论发现**——协议会改变方法排序（稠密协议下 ItemCF 断层第一，标准协议下与序列模型同档）；
+**⑤ 训练预算与种子噪声**——1 epoch 下 dense recall@50 差距已在种子噪声内、采样协议剩 ~2pp 稳定小劣势；
+同预算 3 epoch 下 sid-b3 全面反超 raw（dense 证据强 / 采样证据弱，单种子）。
 
 ## 7. 目录结构与关键模块
 
@@ -147,6 +164,7 @@ src/genrec/
   eval/run_eval.py        统一评估与列表存档
   generate.py             单用户生成 demo
 scripts/measure_speed.py  CPU 速度标定脚本      scripts/analyze_buckets.py 分桶分析
+scripts/build_extended_sid.py  b3 扩展 SID      scripts/run_convergence_campaign.py  收敛/种子战役
 tests/                    24 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE 关键性质）
 docs/                     实验报告 / 面试材料 / 论文与出处
 ```
@@ -158,6 +176,7 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 | 预处理全流程 | 约 77s，峰值内存 1.39 GB |
 | RQ-VAE 训练 | 416s（v1）/ 670s（v2），600 epochs |
 | 生成模型训练（150k 样本 ×1 epoch） | GRU 843s；Transformer 853~1,588s |
+| 收敛/种子战役（6 次训练 + 12 次双协议评估） | 24,592s ≈ 6.8h |
 | 评估（1,411 用户） | 基线 <5s；生成模型 286~398s（beam=50, CPU） |
 | 训练吞吐 | **4 线程 206 samples/s；8 线程仅 19（线程超订）** |
 
@@ -178,9 +197,9 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 ## 10. 局限与未解决问题
 
 - **离线研究原型**：无线上 A/B、无线上收益声明；标签为观看行为，非互动全信号；
-- **轻量预算**：生成模型 1 epoch × 150k 样本；内容编码器为 TF-IDF+SVD（非神经编码器）；
-- **碰撞率 22%（v2）**：仍是主要瓶颈之一；TIGER 式"碰撞追加位"未实现；
-- **待运行**：行为 token 消融（on/off）、4 级 SID、多 epoch 收敛对比。
+- **轻量预算**：主表为 1 epoch × 150k 样本；已补 3 epoch 收敛对照与三种子方差（§6.6），未做超参搜索；
+- **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557ms/用户（b1 279ms、raw 3.5ms），上线需 prefix 缓存等优化（待运行）；
+- **待运行**：行为 token 消融（on/off）、SASRec 标准基线、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
 
 ## 11. 引用与许可
 

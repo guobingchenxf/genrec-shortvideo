@@ -1,0 +1,266 @@
+{
+  "note": "P0：A1 收敛（-e3，seed42×3 epoch）+ E4 种子方差（-s43/-s44）；seed42×1ep 基线引用主表（gen_sid-b3 / gen_raw 主检查点）",
+  "training_logs": {
+    "sid-b3-e3": {
+      "seed": 42,
+      "epochs": 3,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 2.332571,
+          "wall_seconds": 2111.8,
+          "batches": 586,
+          "samples_per_second": 71.0,
+          "val_loss": 3.244701
+        },
+        {
+          "epoch": 2,
+          "loss": 1.609105,
+          "wall_seconds": 1838.6,
+          "batches": 586,
+          "samples_per_second": 81.6,
+          "val_loss": 3.25274
+        },
+        {
+          "epoch": 3,
+          "loss": 1.482749,
+          "wall_seconds": 1837.4,
+          "batches": 586,
+          "samples_per_second": 81.6,
+          "val_loss": 3.301304
+        }
+      ]
+    },
+    "raw-e3": {
+      "seed": 42,
+      "epochs": 3,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 4.101152,
+          "wall_seconds": 1236.4,
+          "batches": 586,
+          "samples_per_second": 121.3,
+          "val_loss": 6.314444
+        },
+        {
+          "epoch": 2,
+          "loss": 3.406509,
+          "wall_seconds": 1348.4,
+          "batches": 586,
+          "samples_per_second": 111.2,
+          "val_loss": 6.545485
+        },
+        {
+          "epoch": 3,
+          "loss": 3.159788,
+          "wall_seconds": 1502.2,
+          "batches": 586,
+          "samples_per_second": 99.9,
+          "val_loss": 6.574376
+        }
+      ]
+    },
+    "sid-b3-s43": {
+      "seed": 43,
+      "epochs": 1,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 2.343719,
+          "wall_seconds": 1655.6,
+          "batches": 586,
+          "samples_per_second": 90.6,
+          "val_loss": 3.242045
+        }
+      ]
+    },
+    "raw-s43": {
+      "seed": 43,
+      "epochs": 1,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 4.096937,
+          "wall_seconds": 1456.2,
+          "batches": 586,
+          "samples_per_second": 103.0,
+          "val_loss": 6.295679
+        }
+      ]
+    },
+    "sid-b3-s44": {
+      "seed": 44,
+      "epochs": 1,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 2.310201,
+          "wall_seconds": 1953.2,
+          "batches": 586,
+          "samples_per_second": 76.8,
+          "val_loss": 3.237472
+        }
+      ]
+    },
+    "raw-s44": {
+      "seed": 44,
+      "epochs": 1,
+      "epochs_log": [
+        {
+          "epoch": 1,
+          "loss": 4.09298,
+          "wall_seconds": 1364.9,
+          "batches": 586,
+          "samples_per_second": 109.9,
+          "val_loss": 6.314551
+        }
+      ]
+    }
+  },
+  "eval": {
+    "sid-b3-e3": {
+      "dense": {
+        "recall@10": 0.009178,
+        "recall@50": 0.039149,
+        "ndcg@10": 0.571406,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.5065,
+        "ndcg@10": 0.295692,
+        "n_users": 2000
+      }
+    },
+    "raw-e3": {
+      "dense": {
+        "recall@10": 0.007221,
+        "recall@50": 0.033934,
+        "ndcg@10": 0.458046,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.499,
+        "ndcg@10": 0.291023,
+        "n_users": 2000
+      }
+    },
+    "sid-b3-s43": {
+      "dense": {
+        "recall@10": 0.007626,
+        "recall@50": 0.034439,
+        "ndcg@10": 0.477246,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.4565,
+        "ndcg@10": 0.253354,
+        "n_users": 2000
+      }
+    },
+    "raw-s43": {
+      "dense": {
+        "recall@10": 0.007393,
+        "recall@50": 0.03567,
+        "ndcg@10": 0.464545,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.4805,
+        "ndcg@10": 0.271494,
+        "n_users": 2000
+      }
+    },
+    "sid-b3-s44": {
+      "dense": {
+        "recall@10": 0.007293,
+        "recall@50": 0.034177,
+        "ndcg@10": 0.452792,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.461,
+        "ndcg@10": 0.256158,
+        "n_users": 2000
+      }
+    },
+    "raw-s44": {
+      "dense": {
+        "recall@10": 0.006885,
+        "recall@50": 0.033763,
+        "ndcg@10": 0.433583,
+        "n_users": 1411
+      },
+      "sampled": {
+        "hr@10": 0.4815,
+        "ndcg@10": 0.275237,
+        "n_users": 2000
+      }
+    }
+  },
+  "summary": {
+    "delta_definition": "sid-b3 减 raw（同种子、同预算；负值=SID 落后）",
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "deltas": {
+      "dense_recall@50": [
+        -0.000574,
+        -0.001231,
+        0.000414
+      ],
+      "dense_ndcg@10": [
+        0.021243,
+        0.012701,
+        0.019209
+      ],
+      "sampled_hr@10": [
+        -0.013,
+        -0.024,
+        -0.0205
+      ]
+    },
+    "delta_mean": {
+      "dense_recall@50": -0.000464,
+      "dense_ndcg@10": 0.017718,
+      "sampled_hr@10": -0.019167
+    },
+    "delta_min": {
+      "dense_recall@50": -0.001231,
+      "dense_ndcg@10": 0.012701,
+      "sampled_hr@10": -0.024
+    },
+    "delta_max": {
+      "dense_recall@50": 0.000414,
+      "dense_ndcg@10": 0.021243,
+      "sampled_hr@10": -0.013
+    }
+  },
+  "seed42_epoch1_reference": {
+    "sid-b3": {
+      "dense": {
+        "recall@10": 0.008349009232456746,
+        "recall@50": 0.03775364248463479,
+        "ndcg@10": 0.5178342765744591
+      },
+      "sampled": {
+        "hr@10": 0.4695,
+        "ndcg@10": 0.2677
+      }
+    },
+    "raw": {
+      "dense": {
+        "recall@10": 0.007909816298928299,
+        "recall@50": 0.038327171245425694,
+        "ndcg@10": 0.49659145538269406
+      },
+      "sampled": {
+        "hr@10": 0.4825,
+        "ndcg@10": 0.2779
+      }
+    }
+  },
+  "total_wall_seconds": 24591.8
+}

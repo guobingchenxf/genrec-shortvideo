@@ -1,0 +1,53 @@
+{
+  "variant": "sid-b3",
+  "tag": "-e3",
+  "smoke": false,
+  "samples": 150000,
+  "seq_len": 105,
+  "vocab_size": 4103,
+  "max_items": 20,
+  "device": "cpu",
+  "seed": 42,
+  "epochs": 3,
+  "val_samples": 50000,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 256,
+    "epochs": 1,
+    "lr": 0.001,
+    "seed": 42,
+    "beam_size": 50,
+    "eval_batch_users": 32,
+    "num_threads": 4,
+    "backbone": "transformer",
+    "d_model": 128,
+    "n_layers": 2,
+    "n_heads": 4
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 2.332571,
+      "wall_seconds": 2111.8,
+      "batches": 586,
+      "samples_per_second": 71.0,
+      "val_loss": 3.244701
+    },
+    {
+      "epoch": 2,
+      "loss": 1.609105,
+      "wall_seconds": 1838.6,
+      "batches": 586,
+      "samples_per_second": 81.6,
+      "val_loss": 3.25274
+    },
+    {
+      "epoch": 3,
+      "loss": 1.482749,
+      "wall_seconds": 1837.4,
+      "batches": 586,
+      "samples_per_second": 81.6,
+      "val_loss": 3.301304
+    }
+  ]
+}

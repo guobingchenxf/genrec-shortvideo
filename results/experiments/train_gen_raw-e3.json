@@ -1,0 +1,53 @@
+{
+  "variant": "raw",
+  "tag": "-e3",
+  "smoke": false,
+  "samples": 150000,
+  "seq_len": 42,
+  "vocab_size": 10735,
+  "max_items": 20,
+  "device": "cpu",
+  "seed": 42,
+  "epochs": 3,
+  "val_samples": 50000,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 256,
+    "epochs": 1,
+    "lr": 0.001,
+    "seed": 42,
+    "beam_size": 50,
+    "eval_batch_users": 32,
+    "num_threads": 4,
+    "backbone": "transformer",
+    "d_model": 128,
+    "n_layers": 2,
+    "n_heads": 4
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 4.101152,
+      "wall_seconds": 1236.4,
+      "batches": 586,
+      "samples_per_second": 121.3,
+      "val_loss": 6.314444
+    },
+    {
+      "epoch": 2,
+      "loss": 3.406509,
+      "wall_seconds": 1348.4,
+      "batches": 586,
+      "samples_per_second": 111.2,
+      "val_loss": 6.545485
+    },
+    {
+      "epoch": 3,
+      "loss": 3.159788,
+      "wall_seconds": 1502.2,
+      "batches": 586,
+      "samples_per_second": 99.9,
+      "val_loss": 6.574376
+    }
+  ]
+}
