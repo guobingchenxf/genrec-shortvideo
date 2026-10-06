@@ -174,7 +174,11 @@ class NextTokenLM(nn.Module):
             raise ValueError(f"unknown backbone: {backbone}")
         self.head = nn.Linear(d_model, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, select_positions=None):
+        """select_positions: 可选，(B, K) 位置索引；只对这些位置计算输出头。
+
+        用于"序列似然打分"等场景：避免对整条序列 × 词表算 logits（省时省内存）。
+        """
         _, T = x.shape
         if T > self.max_len:
             raise ValueError(f"sequence length {T} exceeds max_len {self.max_len}")
@@ -188,6 +192,9 @@ class NextTokenLM(nn.Module):
         else:
             # GRU 为轻量基线：末尾 padding 不参与损失（label=0 忽略）
             h, _ = self.backbone(h)
+        if select_positions is not None:
+            bidx = torch.arange(h.shape[0], device=h.device)[:, None]
+            h = h[bidx, select_positions]          # (B, K, d)
         return self.head(h)
 
 

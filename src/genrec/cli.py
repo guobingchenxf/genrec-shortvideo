@@ -48,6 +48,17 @@ def main(argv=None):
     p_ev.add_argument("--beam", type=int, default=None,
                       help="覆盖生成方法的 beam 大小（消融用）")
 
+    p_sp = sub.add_parser("evaluate-sampled",
+                          help="标准协议评估（留一法 + 100 负采样）")
+    p_sp.add_argument("--methods", default=",".join(
+        ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
+         "gen-raw", "gru-raw"]))
+    p_sp.add_argument("--max-users", type=int, default=None,
+                      help="只评前 N 个用户（调试/加速用；默认全量）")
+    p_sp.add_argument("--n-neg", type=int, default=100)
+    p_sp.add_argument("--seed", type=int, default=42)
+    p_sp.add_argument("--config", default="configs/default.yaml")
+
     p_gn = sub.add_parser("generate", help="单用户生成 demo")
     p_gn.add_argument("--user-id", type=int, required=True)
     p_gn.add_argument("--topk", type=int, default=10)
@@ -79,6 +90,10 @@ def main(argv=None):
         from genrec.eval import run_eval
         run_eval.run(cfg, methods=args.methods.split(","), smoke=args.smoke,
                      beam=args.beam)
+    elif args.command == "evaluate-sampled":
+        from genrec.eval import sampled
+        sampled.run(cfg, methods=args.methods.split(","),
+                    max_users=args.max_users, n_neg=args.n_neg, seed=args.seed)
     elif args.command == "generate":
         from genrec import generate
         generate.run(cfg, user_id=args.user_id, topk=args.topk,

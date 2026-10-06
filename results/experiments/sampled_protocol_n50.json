@@ -1,0 +1,54 @@
+{
+  "protocol": "leave-one-out + 100 sampled negatives (big matrix)",
+  "n_users": 50,
+  "n_neg": 100,
+  "seed": 42,
+  "max_context": 20,
+  "targets_after_train_window_share": 0.94,
+  "note": "生成模型训练于前 90% 时间窗；目标多为窗口末端交互（近似未来测试）；本表用于同候选集同协议的方法间对照，绝对值不与论文数字直接比较。",
+  "results": {
+    "random": {
+      "hr@10": 0.16,
+      "ndcg@10": 0.0733,
+      "wall_seconds": 0.0,
+      "ms_per_user": 0.03
+    },
+    "pop": {
+      "hr@10": 0.16,
+      "ndcg@10": 0.0755,
+      "wall_seconds": 0.7,
+      "ms_per_user": 14.35
+    },
+    "itemcf": {
+      "hr@10": 0.52,
+      "ndcg@10": 0.2754,
+      "wall_seconds": 0.8,
+      "ms_per_user": 15.4
+    },
+    "gen-sid": {
+      "hr@10": 0.3,
+      "ndcg@10": 0.1392,
+      "wall_seconds": 19.3,
+      "ms_per_user": 385.86
+    },
+    "gen-sid-v2": {
+      "hr@10": 0.42,
+      "ndcg@10": 0.2372,
+      "wall_seconds": 18.2,
+      "ms_per_user": 363.72
+    },
+    "gen-raw": {
+      "hr@10": 0.66,
+      "ndcg@10": 0.3838,
+      "wall_seconds": 9.2,
+      "ms_per_user": 183.82
+    },
+    "gru-raw": {
+      "hr@10": 0.54,
+      "ndcg@10": 0.2908,
+      "wall_seconds": 2.6,
+      "ms_per_user": 52.0
+    }
+  },
+  "total_wall_seconds": 77.4
+}
