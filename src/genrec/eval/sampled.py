@@ -183,10 +183,11 @@ def score_candidates(model, tok, prefixes, candidates, L):
 
 @torch.no_grad()
 def score_generator(cfg, variant, data, users_chunk=4, cands_chunk=32,
-                    device="cpu"):
+                    device="cpu", ckpt_name=None):
     """教师强制序列似然打分：候选得分 = 其 token 序列 log-prob 之和。"""
     processed = cfg.path("paths", "processed_dir")
-    ckpt_path = cfg.root / "results" / "models" / f"gen_{variant}.pt"
+    ckpt_path = cfg.root / "results" / "models" / (
+        ckpt_name or f"gen_{variant}.pt")
     ckpt = torch.load(ckpt_path, weights_only=False)
     is_sid = bool(ckpt["is_sid"])
     if is_sid:

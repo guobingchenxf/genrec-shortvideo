@@ -56,9 +56,10 @@ def _load_eval(cfg, smoke):
 
 
 def _generate_lists(cfg, variant, contexts, actions, mask, video_ids, suffix,
-                    beam=None):
+                    beam=None, ckpt_name=None):
     processed = cfg.path("paths", "processed_dir")
-    ckpt_path = cfg.root / "results" / "models" / f"gen_{variant}{suffix}.pt"
+    ckpt_path = cfg.root / "results" / "models" / (
+        ckpt_name or f"gen_{variant}{suffix}.pt")
     if not ckpt_path.exists():
         raise FileNotFoundError(
             f"checkpoint not found: {ckpt_path}; run train-gen first")
