@@ -12,6 +12,9 @@
 
 import argparse
 
+# 与 genrec.train.VARIANTS 及 configs 的 gen.variants 保持一致（有测试防漂移）
+TRAIN_GEN_VARIANTS = ["sid", "sid-v2", "sid-b1", "sid-b3", "raw", "raw-gru"]
+
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
@@ -34,8 +37,13 @@ def main(argv=None):
     p_rq.add_argument("--tag", default=None,
                       help="实验标签（如 v2，读取 models.rqvae_v2 配置并区分产物）")
 
+    p_ce = sub.add_parser("encode-content",
+                          help="B1：神经内容编码器特征（bge-small-zh）")
+    p_ce.add_argument("--config", default="configs/default.yaml")
+    p_ce.add_argument("--out", default="content_feats_bge.npz")
+
     p_tg = sub.add_parser("train-gen", help="训练生成式序列模型")
-    p_tg.add_argument("--variant", choices=["sid", "sid-v2", "raw", "raw-gru"],
+    p_tg.add_argument("--variant", choices=TRAIN_GEN_VARIANTS,
                       required=True)
     p_tg.add_argument("--config", default="configs/default.yaml")
     p_tg.add_argument("--smoke", action="store_true")
@@ -50,9 +58,9 @@ def main(argv=None):
 
     p_sp = sub.add_parser("evaluate-sampled",
                           help="标准协议评估（留一法 + 100 负采样）")
-    p_sp.add_argument("--methods", default=",".join(
-        ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
-         "gen-raw", "gru-raw"]))
+    p_sp.add_argument("--methods",
+                      default="random,pop,itemcf,gen-sid,gen-sid-v2,"
+                              "gen-raw,gru-raw")
     p_sp.add_argument("--max-users", type=int, default=None,
                       help="只评前 N 个用户（调试/加速用；默认全量）")
     p_sp.add_argument("--n-neg", type=int, default=100)
@@ -83,6 +91,9 @@ def main(argv=None):
     elif args.command == "train-rqvae":
         from genrec import train
         train.train_rqvae_main(cfg, smoke=args.smoke, tag=args.tag)
+    elif args.command == "encode-content":
+        from genrec.data import content_neural
+        content_neural.run(cfg, out_name=args.out)
     elif args.command == "train-gen":
         from genrec import train
         train.run_gen(cfg, variant=args.variant, smoke=args.smoke)

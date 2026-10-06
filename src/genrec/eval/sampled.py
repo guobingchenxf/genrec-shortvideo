@@ -28,7 +28,7 @@ import torch
 from genrec.data.preprocess import bucket_action
 from genrec.eval import baselines
 from genrec.eval.run_eval import SID_FILES
-from genrec.models.seqgen import (BOS, NextTokenLM, RawTokenizer, SidTokenizer)
+from genrec.models.seqgen import BOS, NextTokenLM, RawTokenizer, SidTokenizer
 
 DEFAULT_METHODS = ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
                    "gen-raw", "gru-raw"]
@@ -68,7 +68,7 @@ def load_loo_data(cfg, max_context=20, n_neg=100, seed=42, max_users=None):
     df = df.sort_values(["user_id", "timestamp"], kind="stable")
 
     video_ids = np.load(processed / "video_vocab.npz")["video_ids"]
-    all_videos = set(int(v) for v in video_ids)
+    all_videos = {int(v) for v in video_ids}
 
     rng = np.random.default_rng(seed)
     users, contexts, context_actions, targets, negatives, target_ts = \
@@ -301,6 +301,14 @@ def run(cfg, methods=None, max_users=None, n_neg=100, seed=42):
         "total_wall_seconds": round(time.perf_counter() - t_start, 1),
     }
     out = experiments / f"sampled_protocol{suffix}.json"
+    if out.exists():
+        # 合并进已有结果：允许分批评不同方法（n_users/协议参数须一致）
+        prev = json.loads(out.read_text(encoding="utf-8"))
+        if prev.get("n_users") == int(n):
+            prev["results"].update(results)
+            prev["total_wall_seconds"] = round(
+                prev.get("total_wall_seconds", 0) + payload["total_wall_seconds"], 1)
+            payload["results"] = prev["results"]
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
                    encoding="utf-8")
     print(f"[sampled] -> {out}")

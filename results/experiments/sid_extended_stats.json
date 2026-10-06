@@ -1,0 +1,10 @@
+{
+  "source": "sid_codes_v2.npz",
+  "levels_before": 3,
+  "levels_after": 4,
+  "videos": 10728,
+  "unique_sids_after": 10728,
+  "collided_videos_before": 1614,
+  "ext_code_max": 35,
+  "note": "组内按 video_id 升序追加序号；扩展后解码无需展开候选组"
+}

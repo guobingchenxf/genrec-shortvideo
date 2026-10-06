@@ -224,16 +224,17 @@ def run(cfg, smoke=False, tag=None):
     tag_part = f"_{tag}" if tag else ""
     smoke_part = "_smoke" if smoke else ""
 
-    timer.start("load_features")
-    data = np.load(processed / f"content_feats{smoke_part}.npz")
-    feats = data["feats"]
-    video_ids = data["video_ids"]
-
     rqvae_cfg = dict(cfg["models"]["rqvae"])
     if tag:
         rqvae_cfg.update(cfg["models"].get(f"rqvae_{tag}", {}))
     if smoke:
         rqvae_cfg["epochs"] = 30  # 干跑只减轮数；保持全部视频与正式流程同构
+
+    timer.start("load_features")
+    feats_file = rqvae_cfg.get("features_file", f"content_feats{smoke_part}.npz")
+    data = np.load(processed / feats_file)
+    feats = data["feats"]
+    video_ids = data["video_ids"]
 
     timer.start("train_rqvae")
     model, train_log, scaler = train_rqvae(feats, rqvae_cfg)

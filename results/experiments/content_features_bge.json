@@ -1,0 +1,20 @@
+{
+  "encoder": "BAAI/bge-small-zh-v1.5",
+  "encoder_dir": "data\\models\\bge-small-zh-v1.5",
+  "encoding": "CLS pooling + L2 normalize (bge official usage)",
+  "embedding_dim": 512,
+  "pca_dim": 64,
+  "pca_explained_variance": 0.6483159065246582,
+  "n_videos": 10728,
+  "coverage": {
+    "with_caption": 10728,
+    "with_categories": 10683,
+    "empty": 0,
+    "total_videos": 10728
+  },
+  "encode_seconds": 426.5,
+  "pca_seconds": 0.1,
+  "batch_size": 64,
+  "max_length": 128,
+  "device": "cpu"
+}

@@ -30,9 +30,12 @@ from genrec.models.seqgen import (
 from genrec.utils.monitor import save_json
 
 METHOD_VARIANT = {"gen-sid": "sid", "gen-sid-v2": "sid-v2",
+                  "gen-sid-b1": "sid-b1", "gen-sid-b3": "sid-b3",
                   "gen-raw": "raw", "gru-raw": "raw-gru"}
-ALL_METHODS = ["pop", "itemcf", "gen-sid", "gen-sid-v2", "gen-raw", "gru-raw"]
-SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2"}
+ALL_METHODS = ["pop", "itemcf", "gen-sid", "gen-sid-v2", "gen-sid-b1",
+               "gen-sid-b3", "gen-raw", "gru-raw"]
+SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2",
+             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3"}
 
 
 def _load_eval(cfg, smoke):
@@ -145,6 +148,13 @@ def run(cfg, methods=None, smoke=False, beam=None):
 
     out = experiments / f"main_table{suffix}.json"
     if beam is None and not smoke:
-        save_json(results, out)
-    print(f"[eval] main table -> {out}")
+        # 合并进主表：允许只评部分方法（保留已有方法的行，更新/追加新行）
+        merged = {}
+        if out.exists():
+            merged = json.loads(out.read_text(encoding="utf-8"))
+        merged.update(results)
+        save_json(merged, out)
+        print(f"[eval] main table (merged) -> {out}")
+    else:
+        print("[eval] main table untouched (beam/smoke run)")
     return results

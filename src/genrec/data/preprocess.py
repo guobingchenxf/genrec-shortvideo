@@ -175,15 +175,13 @@ def build_small_eval(df_small, seq_len, context_ratio):
     return eval_arrays, leave_one, targets_map, exclude_pairs
 
 
-def build_content_features(video_ids, data_dir, content_cfg, seed):
-    """caption + 类目 -> 字符 n-gram TF-IDF -> SVD。
+def build_video_texts(data_dir, video_ids):
+    """组装每个视频的内容文本（caption + 封面 + 话题 + 三级类目 + raw 类目）。
 
-    返回 (video_ids sorted array, feats float32 [N, d], coverage dict, svd_evr)。
-    文本只在内容侧使用，不存在时间泄漏问题；对所有视频统一拟合（转导）。
+    返回 (ids, corpus, coverage)。TF-IDF 路线（本模块）与神经编码器路线
+    （data/content_neural.py）共用此函数，保证 B2 特征消融的文本源完全一致。
+    文本只在内容侧使用，不存在时间泄漏问题；对所有视频统一处理（转导）。
     """
-    from sklearn.decomposition import TruncatedSVD
-    from sklearn.feature_extraction.text import TfidfVectorizer
-
     # 注意：C 引擎在该文件会报 Buffer overflow（实测），改用 python 引擎；
     # 另实测有 8 行存在字段缺失（被补为 NaN），统一置空串处理
     cap = pd.read_csv(data_dir / "kuairec_caption_category.csv",
@@ -234,6 +232,18 @@ def build_content_features(video_ids, data_dir, content_cfg, seed):
             coverage["empty"] += 1
         corpus.append(combined)
     coverage["total_videos"] = len(ids)
+    return ids, corpus, coverage
+
+
+def build_content_features(video_ids, data_dir, content_cfg, seed):
+    """caption + 类目 -> 字符 n-gram TF-IDF -> SVD。
+
+    返回 (video_ids sorted array, feats float32 [N, d], coverage dict, svd_evr)。
+    """
+    from sklearn.decomposition import TruncatedSVD
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
+    ids, corpus, coverage = build_video_texts(data_dir, video_ids)
 
     vec = TfidfVectorizer(
         analyzer="char",

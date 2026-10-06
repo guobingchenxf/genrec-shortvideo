@@ -18,8 +18,10 @@ from genrec.models.seqgen import (
 )
 from genrec.utils.monitor import save_json
 
-VARIANTS = {"sid": True, "sid-v2": True, "raw": False, "raw-gru": False}
-SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2"}
+VARIANTS = {"sid": True, "sid-v2": True, "sid-b1": True, "sid-b3": True,
+            "raw": False, "raw-gru": False}
+SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2",
+             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3"}
 
 
 def train_rqvae_main(cfg, smoke=False, tag=None):

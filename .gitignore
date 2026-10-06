@@ -9,6 +9,9 @@ __pycache__/
 data/raw/
 data/processed/
 
+# local pretrained model files (B1 content encoder) are not committed
+data/models/
+
 # model checkpoints are not committed (results/experiments logs ARE committed)
 results/models/
 
