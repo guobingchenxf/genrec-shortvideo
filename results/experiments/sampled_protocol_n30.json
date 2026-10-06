@@ -1,0 +1,18 @@
+{
+  "protocol": "leave-one-out + 100 sampled negatives (big matrix)",
+  "n_users": 30,
+  "n_neg": 100,
+  "seed": 42,
+  "max_context": 20,
+  "targets_after_train_window_share": 0.9333,
+  "note": "生成模型训练于前 90% 时间窗；目标多为窗口末端交互（近似未来测试）；本表用于同候选集同协议的方法间对照，绝对值不与论文数字直接比较。",
+  "results": {
+    "gen-sid-b1": {
+      "hr@10": 0.3333,
+      "ndcg@10": 0.1812,
+      "wall_seconds": 24.2,
+      "ms_per_user": 806.93
+    }
+  },
+  "total_wall_seconds": 53.2
+}

@@ -27,11 +27,11 @@ import torch
 
 from genrec.data.preprocess import bucket_action
 from genrec.eval import baselines
-from genrec.eval.run_eval import SID_FILES
+from genrec.eval.run_eval import METHOD_VARIANT, SID_FILES
 from genrec.models.seqgen import BOS, NextTokenLM, RawTokenizer, SidTokenizer
 
 DEFAULT_METHODS = ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
-                   "gen-raw", "gru-raw"]
+                   "gen-sid-b1", "gen-sid-b3", "gen-raw", "gru-raw"]
 
 
 # ----------------------------------------------------------------------
@@ -271,10 +271,9 @@ def run(cfg, methods=None, max_users=None, n_neg=100, seed=42):
             scores = score_pop(cfg, data)
         elif m == "itemcf":
             scores = score_itemcf(cfg, data)
-        elif m in ("gen-sid", "gen-sid-v2", "gen-raw", "gru-raw"):
-            variant = {"gen-sid": "sid", "gen-sid-v2": "sid-v2",
-                       "gen-raw": "raw", "gru-raw": "raw-gru"}[m]
-            scores = score_generator(cfg, variant, data)
+        elif m in METHOD_VARIANT:
+            # 分发表与全观测评估共用同一来源（run_eval.METHOD_VARIANT），防漂移
+            scores = score_generator(cfg, METHOD_VARIANT[m], data)
         else:
             raise ValueError(f"unknown method: {m}")
         hr10, ndcg10 = hr_ndcg_at_10(scores)

@@ -48,7 +48,19 @@
       "ndcg@10": 0.2767,
       "wall_seconds": 103.4,
       "ms_per_user": 51.68
+    },
+    "gen-sid-b1": {
+      "hr@10": 0.4255,
+      "ndcg@10": 0.2237,
+      "wall_seconds": 796.3,
+      "ms_per_user": 398.13
+    },
+    "gen-sid-b3": {
+      "hr@10": 0.4695,
+      "ndcg@10": 0.2677,
+      "wall_seconds": 1128.8,
+      "ms_per_user": 564.39
     }
   },
-  "total_wall_seconds": 1706.5
+  "total_wall_seconds": 1959.7
 }

@@ -26,5 +26,18 @@ def test_sid_variants_have_sid_files_mapping():
         f"SID 变体缺少语义 ID 文件映射：{sid_variants - set(SID_FILES)}")
 
 
+def test_eval_methods_cover_all_generator_variants():
+    """评估侧方法表必须覆盖全部生成模型变体（历史上三次接入遗漏）。"""
+    from genrec.eval.run_eval import METHOD_VARIANT
+    from genrec.eval.sampled import DEFAULT_METHODS
+
+    assert set(METHOD_VARIANT.values()) <= set(VARIANTS.keys()), (
+        f"评估方法引用了未定义的变体："
+        f"{set(METHOD_VARIANT.values()) - set(VARIANTS)}")
+    covered = set(METHOD_VARIANT)
+    for method in covered:
+        assert method in DEFAULT_METHODS, f"{method} 未进入采样协议默认方法表"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-q"])

@@ -70,5 +70,29 @@
     "eval_wall_seconds": 3.3,
     "ms_per_user": 2.37,
     "smoke": false
+  },
+  "gen-sid-b1": {
+    "recall@10": 0.006259248046209325,
+    "recall@50": 0.028978251721545518,
+    "hit_rate@10": 0.9241672572643516,
+    "hit_rate@50": 0.9943302622253721,
+    "ndcg@10": 0.39484808580813846,
+    "coverage@50": 0.18521625652498136,
+    "n_users": 1411,
+    "eval_wall_seconds": 394.3,
+    "ms_per_user": 279.46,
+    "smoke": false
+  },
+  "gen-sid-b3": {
+    "recall@10": 0.008349009232456746,
+    "recall@50": 0.03775364248463479,
+    "hit_rate@10": 0.9957476966690291,
+    "hit_rate@50": 1.0,
+    "ndcg@10": 0.5178342765744591,
+    "coverage@50": 0.1593027591349739,
+    "n_users": 1411,
+    "eval_wall_seconds": 785.5,
+    "ms_per_user": 556.71,
+    "smoke": false
   }
 }
