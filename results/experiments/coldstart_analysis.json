@@ -1,0 +1,71 @@
+{
+  "note": "new = 首次曝光时间晚于训练窗截止 t0；recall 为 micro（Σ命中/Σ目标）",
+  "t0": 1598870571.464,
+  "catalog_size": 10728,
+  "catalog_new_items": 1144,
+  "results": {
+    "pop": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.008209979413782962,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0
+    },
+    "itemcf": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.058604994162782614,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0
+    },
+    "gen-sid": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.015171195337355517,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.05389
+    },
+    "gen-sid-v2": {
+      "new_recall@50": 0.008156606851549755,
+      "old_recall@50": 0.024857188689165945,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0362
+    },
+    "gen-sid-b1": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.02902678881749561,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.01644
+    },
+    "gen-sid-b3": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.03780823626917147,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.00162
+    },
+    "gen-raw": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.0383819322526312,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0
+    },
+    "gru-raw": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.037185525483241395,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0
+    },
+    "sasrec": {
+      "new_recall@50": 0.0,
+      "old_recall@50": 0.028658063826184597,
+      "new_targets": 1226,
+      "old_targets": 897688,
+      "new_slot_share_in_top50": 0.0
+    }
+  }
+}

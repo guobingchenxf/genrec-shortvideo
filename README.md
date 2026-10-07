@@ -99,10 +99,12 @@ python -m genrec.cli evaluate --methods gen-sid,gen-sid-v2 --beam 10   # beam �
 python -m genrec.cli evaluate-sampled    # 标准协议（--methods 追加 gen-sid-b1,gen-sid-b3）
 python -m genrec.cli generate --user-id 14 --topk 10   # 单用户生成 demo
 python scripts/analyze_buckets.py        # 长尾/冷启动分桶分析
+python scripts/analyze_coldstart.py      # E5 冷启动细化（首次曝光时间口径）
+python scripts/analyze_diversity.py      # E6 列表多样性/新颖性
 python scripts/run_convergence_campaign.py   # 收敛/种子战役：3 epoch + 种子方差（约 6.8h）
 python scripts/run_e3_d2_campaign.py     # E3/D2 战役：行为 token 消融 + beam Pareto（约 77min）
 python scripts/run_c2_sasrec.py           # C2 战役：SASRec-lite 训练 + 双协议评估（约 34min）
-pytest -q                                # 41 项测试（仅用合成数据）
+pytest -q                                # 45 项测试（仅用合成数据）
 ```
 
 常用干跑（不产正式结论）：`prepare --smoke` / `train-rqvae --smoke` / `train-gen ... --smoke` /
@@ -154,6 +156,13 @@ pytest -q                                # 41 项测试（仅用合成数据）
   LOO 上"末项回声"得分 ≥ 目标的比例 84.7%；容量 d64→d128 反使 LOO 0.334→0.208（回声被放大）。
 - 结论仅限 lite 档配置；延迟 0.77ms/用户（全表最快）。
 
+**评估维度扩展（E5/E6，2026-10-07 实测；详见实验报告 §6.10/§6.11）**：
+
+- **冷启动细化（E5）**：按"首次曝光时间晚于训练窗"定义真·上新（词表 10.7%）；上新目标几乎不可命中
+  （仅 v2 有 0.008 级微弱命中）；**只有 SID 家族会给上新物品曝光**（v1 5.39% → b3 0.16%，非 SID 方法全为 0）。
+- **多样性与新颖性（E6）**：v1 新颖性最高（13.92）但消除碰撞后 b3 回落到 raw 同级（11.99 vs 11.95）；
+  v1 的 ILD 极低（0.36）同样是碰撞展开后果——"SID 不自动带来多样性"证据链第三次闭合。
+
 **五条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
 修复后，**b3 在两个协议上基本追平原生 ID**（dense recall@50 达 raw 的 98.5%、ndcg@10 反超 4%；
 采样协议 HR@10 达 raw 的 97.3%）；
@@ -181,7 +190,7 @@ src/genrec/
   models/seqgen.py        Tokenizer/trie 受限解码/beam/因果 LM
   models/sasrec.py        C2：SASRec-lite 基线（因果自注意力，全词表 CE）
   train.py                训练编排（四个变体）
-  eval/metrics.py         指标（recall/ndcg/hit_rate/coverage）
+  eval/metrics.py         指标（recall/ndcg/hit_rate/coverage/ILD/新颖性）
   eval/baselines.py       流行度与 ItemCF（含缓存）
   eval/run_eval.py        统一评估与列表存档
   generate.py             单用户生成 demo
@@ -189,7 +198,8 @@ scripts/measure_speed.py  CPU 速度标定脚本      scripts/analyze_buckets.py
 scripts/build_extended_sid.py  b3 扩展 SID      scripts/run_convergence_campaign.py  收敛/种子战役
 scripts/run_e3_d2_campaign.py  E3/D2 战役（行为 token 消融 + beam Pareto）
 scripts/run_c2_sasrec.py  C2 战役（SASRec-lite 训练 + 双协议评估）
-tests/                    35 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融序列构建）
+scripts/analyze_coldstart.py  E5 冷启动细化   scripts/analyze_diversity.py  E6 多样性/新颖性
+tests/                    45 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融/多样性指标）
 docs/                     实验报告 / 面试材料 / 论文与出处
 ```
 
@@ -227,7 +237,7 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 - **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557ms/用户（b1 279ms、raw 3.5ms），上线需 prefix 缓存等优化（待运行）；
 - **消融与曲线**：行为 token 未检测到收益（E3 负结果，§6.7）；top-10 质量 beam≈20 饱和、直出场景延迟可减半（D2，§6.8）；
 - **标准基线（阴性）**：SASRec-lite 两协议均低于 GRU4Rec-lite 与生成式模型；已定位为数据分布效应（回看回声率随时间衰减），非实现错误（§6.9）；
-- **待运行**：完整版 SASRec（超参搜索——本版为 lite 档）、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
+- **待运行**：完整版 SASRec（超参搜索——本版为 lite 档）、prefix 缓存推理优化。
 
 ## 11. 引用与许可
 

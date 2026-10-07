@@ -1,0 +1,51 @@
+{
+  "note": "ILD@K=Top-K 两两余弦距离均值（内容特征 TF-IDF+SVD64）；Novelty@K=平均 -log2(p)，p 为训练窗热度占比（Laplace 平滑）",
+  "k": 50,
+  "results": {
+    "pop": {
+      "ild@k": 0.8052,
+      "novelty@k": 10.6267,
+      "coverage@k": 0.005
+    },
+    "itemcf": {
+      "ild@k": 0.8188,
+      "novelty@k": 11.4596,
+      "coverage@k": 0.0083
+    },
+    "gen-sid": {
+      "ild@k": 0.3632,
+      "novelty@k": 13.9194,
+      "coverage@k": 0.2183
+    },
+    "gen-sid-v2": {
+      "ild@k": 0.7157,
+      "novelty@k": 13.1186,
+      "coverage@k": 0.1887
+    },
+    "gen-sid-b1": {
+      "ild@k": 0.7739,
+      "novelty@k": 13.0114,
+      "coverage@k": 0.1852
+    },
+    "gen-sid-b3": {
+      "ild@k": 0.8131,
+      "novelty@k": 11.9889,
+      "coverage@k": 0.1593
+    },
+    "gen-raw": {
+      "ild@k": 0.8613,
+      "novelty@k": 11.9535,
+      "coverage@k": 0.1482
+    },
+    "gru-raw": {
+      "ild@k": 0.8239,
+      "novelty@k": 11.6138,
+      "coverage@k": 0.0262
+    },
+    "sasrec": {
+      "ild@k": 0.8471,
+      "novelty@k": 11.8948,
+      "coverage@k": 0.1947
+    }
+  }
+}

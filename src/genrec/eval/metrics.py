@@ -54,3 +54,44 @@ def evaluate_lists(lists, targets_map, user_ids, catalog_size, ks=(10, 50)):
     out["ndcg@10"] = float(np.mean(ndcg))
     out[f"coverage@{max(ks)}"] = float(coverage_at_k(lists, max(ks), catalog_size))
     return out
+
+
+def intra_list_diversity(lists, item_vectors, k=50):
+    """E6：列表内多样性 = Top-K 两两余弦距离（1 - cos）均值，再对用户取平均。
+
+    lists: 每个元素为物品下标（对应 item_vectors 行）的排序列表。
+    """
+    vecs = np.asarray(item_vectors, dtype=np.float64)
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    norms[norms == 0.0] = 1.0
+    unit = vecs / norms
+    ilds = []
+    for ranked in lists:
+        idx = [i for i in ranked[:k] if 0 <= i < len(unit)]
+        n = len(idx)
+        if n < 2:
+            ilds.append(0.0)
+            continue
+        u = unit[idx]
+        gram = u @ u.T
+        off_mean = (gram.sum() - np.trace(gram)) / (n * (n - 1))
+        ilds.append(float(1.0 - off_mean))
+    return float(np.mean(ilds)) if ilds else 0.0
+
+
+def novelty(lists, pop_counts, k=50):
+    """E6：新颖性 = Top-K 物品平均自信息 -log2(p)。
+
+    p 为训练窗热度占比，拉普拉斯平滑 p = (count + 1) / (total + N)。
+    """
+    counts = np.asarray(pop_counts, dtype=np.float64)
+    n_items = len(counts)
+    p = (counts + 1.0) / (counts.sum() + n_items)
+    info = -np.log2(p)
+    vals = []
+    for ranked in lists:
+        idx = [i for i in ranked[:k] if 0 <= i < n_items]
+        if not idx:
+            continue
+        vals.append(float(np.mean(info[idx])))
+    return float(np.mean(vals)) if vals else 0.0
