@@ -1,0 +1,67 @@
+{
+  "variant": "sasrec",
+  "tag": "",
+  "smoke": false,
+  "samples": 150000,
+  "n_items": 10728,
+  "max_items": 20,
+  "seed": 42,
+  "epochs": 6,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 256,
+    "epochs": 6,
+    "lr": 0.001,
+    "seed": 42,
+    "d_model": 64,
+    "n_layers": 2,
+    "n_heads": 2,
+    "dropout": 0.1,
+    "max_len": 24,
+    "num_threads": 4
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 6.505853,
+      "wall_seconds": 500.3,
+      "batches": 584,
+      "samples_per_second": 299.8
+    },
+    {
+      "epoch": 2,
+      "loss": 5.533497,
+      "wall_seconds": 358.9,
+      "batches": 584,
+      "samples_per_second": 418.0
+    },
+    {
+      "epoch": 3,
+      "loss": 5.169219,
+      "wall_seconds": 482.3,
+      "batches": 584,
+      "samples_per_second": 311.0
+    },
+    {
+      "epoch": 4,
+      "loss": 4.992631,
+      "wall_seconds": 368.0,
+      "batches": 584,
+      "samples_per_second": 407.6
+    },
+    {
+      "epoch": 5,
+      "loss": 4.935045,
+      "wall_seconds": 425.9,
+      "batches": 584,
+      "samples_per_second": 352.2
+    },
+    {
+      "epoch": 6,
+      "loss": 4.901229,
+      "wall_seconds": 377.6,
+      "batches": 584,
+      "samples_per_second": 397.2
+    }
+  ]
+}

@@ -39,5 +39,14 @@ def test_eval_methods_cover_all_generator_variants():
         assert method in DEFAULT_METHODS, f"{method} 未进入采样协议默认方法表"
 
 
+def test_sasrec_enters_both_protocols():
+    """C2 防漂移：SASRec 基线必须同时出现在两种协议的默认方法表中。"""
+    from genrec.eval.run_eval import ALL_METHODS
+    from genrec.eval.sampled import DEFAULT_METHODS
+
+    assert "sasrec" in ALL_METHODS
+    assert "sasrec" in DEFAULT_METHODS
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-q"])

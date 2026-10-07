@@ -20,6 +20,7 @@ import torch
 
 from genrec.eval import baselines
 from genrec.eval.metrics import evaluate_lists
+from genrec.models.sasrec import load_sasrec, rank_all, recent_items
 from genrec.models.seqgen import (
     NextTokenLM,
     RawTokenizer,
@@ -34,7 +35,8 @@ METHOD_VARIANT = {"gen-sid": "sid", "gen-sid-v2": "sid-v2",
                   "gen-sid-b3-na": "sid-b3-na",
                   "gen-raw": "raw", "gru-raw": "raw-gru"}
 ALL_METHODS = ["pop", "itemcf", "gen-sid", "gen-sid-v2", "gen-sid-b1",
-               "gen-sid-b3", "gen-sid-b3-na", "gen-raw", "gru-raw"]
+               "gen-sid-b3", "gen-sid-b3-na", "gen-raw", "gru-raw",
+               "sasrec"]
 SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2",
              "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3",
              "sid-b3-na": "sid_codes_b3"}
@@ -125,6 +127,18 @@ def run(cfg, methods=None, smoke=False, beam=None):
             raw_lists = _generate_lists(cfg, METHOD_VARIANT[m], contexts,
                                         actions, mask, video_ids, suffix,
                                         beam=beam)
+            lists = [[v for v in ranked if v not in bans[i]][:50]
+                     for i, ranked in enumerate(raw_lists)]
+        elif m == "sasrec":
+            model, ck = load_sasrec(cfg, f"sasrec{suffix}.pt")
+            max_items = int(ck["max_items"])
+            index_of = {int(v): i + 1 for i, v in enumerate(video_ids)}
+            ctx_seqs = [[index_of[int(v)] for v in
+                         recent_items(contexts[i], mask[i], max_items)]
+                        for i in range(len(contexts))]
+            idx_lists = rank_all(model, ctx_seqs, max_items, topk=50)
+            raw_lists = [[int(video_ids[j]) for j in row]
+                         for row in idx_lists]
             lists = [[v for v in ranked if v not in bans[i]][:50]
                      for i, ranked in enumerate(raw_lists)]
         else:

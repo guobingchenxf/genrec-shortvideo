@@ -28,11 +28,12 @@ import torch
 from genrec.data.preprocess import bucket_action
 from genrec.eval import baselines
 from genrec.eval.run_eval import METHOD_VARIANT, SID_FILES
+from genrec.models.sasrec import load_sasrec, score_item_candidates
 from genrec.models.seqgen import BOS, NextTokenLM, RawTokenizer, SidTokenizer
 
 DEFAULT_METHODS = ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
                    "gen-sid-b1", "gen-sid-b3", "gen-sid-b3-na",
-                   "gen-raw", "gru-raw"]
+                   "gen-raw", "gru-raw", "sasrec"]
 
 
 # ----------------------------------------------------------------------
@@ -236,6 +237,33 @@ def score_generator(cfg, variant, data, users_chunk=4, cands_chunk=32,
     return scores
 
 
+@torch.no_grad()
+def score_sasrec(cfg, data):
+    """SASRec 基线打分：最后位置隐状态 × 候选物品嵌入（同一候选集协议）。"""
+    processed = cfg.path("paths", "processed_dir")
+    video_ids = np.load(processed / "video_vocab.npz")["video_ids"]
+    index_of = {int(v): i + 1 for i, v in enumerate(video_ids)}
+    model, ck = load_sasrec(cfg, "sasrec.pt")
+    max_items = int(ck["max_items"])
+    n = len(data["users"])
+    c = data["negatives"].shape[1] + 1
+    scores = np.full((n, c), -1e9, dtype=np.float32)
+    chunk = 64
+    for u0 in range(0, n, chunk):
+        u1 = min(u0 + chunk, n)
+        ctx_seqs = [[index_of[int(v)]
+                     for v in data["contexts"][ui][-max_items:]]
+                    for ui in range(u0, u1)]
+        cand_idx = [
+            np.array([index_of[int(v)] for v in np.concatenate(
+                [[data["targets"][ui]], data["negatives"][ui]])],
+                dtype=np.int64)
+            for ui in range(u0, u1)]
+        scores[u0:u1] = score_item_candidates(model, ctx_seqs, cand_idx,
+                                              max_items)
+    return scores
+
+
 # ----------------------------------------------------------------------
 # 指标与主流程
 # ----------------------------------------------------------------------
@@ -277,6 +305,8 @@ def run(cfg, methods=None, max_users=None, n_neg=100, seed=42):
         elif m in METHOD_VARIANT:
             # 分发表与全观测评估共用同一来源（run_eval.METHOD_VARIANT），防漂移
             scores = score_generator(cfg, METHOD_VARIANT[m], data)
+        elif m == "sasrec":
+            scores = score_sasrec(cfg, data)
         else:
             raise ValueError(f"unknown method: {m}")
         hr10, ndcg10 = hr_ndcg_at_10(scores)

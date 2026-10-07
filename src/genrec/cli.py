@@ -6,6 +6,7 @@
   python -m genrec.cli prepare [--smoke]   # 预处理（产物/干跑分离）
   python -m genrec.cli train-rqvae [--smoke]          # 训练语义 ID（RQ-VAE）
   python -m genrec.cli train-gen --variant sid|raw|raw-gru [--smoke]
+  python -m genrec.cli train-sasrec [--smoke]         # C2：SASRec-lite 基线
   python -m genrec.cli evaluate [--methods pop,itemcf,...] [--smoke]
   python -m genrec.cli generate --user-id 0 --topk 10
 """
@@ -48,6 +49,13 @@ def main(argv=None):
                       required=True)
     p_tg.add_argument("--config", default="configs/default.yaml")
     p_tg.add_argument("--smoke", action="store_true")
+
+    p_sa = sub.add_parser("train-sasrec",
+                          help="C2：SASRec-lite 基线（采样 softmax）")
+    p_sa.add_argument("--config", default="configs/default.yaml")
+    p_sa.add_argument("--smoke", action="store_true")
+    p_sa.add_argument("--tag", default="",
+                      help="附加到检查点与日志文件名")
 
     p_ev = sub.add_parser("evaluate", help="全观测协议评估")
     p_ev.add_argument("--methods",
@@ -98,6 +106,9 @@ def main(argv=None):
     elif args.command == "train-gen":
         from genrec import train
         train.run_gen(cfg, variant=args.variant, smoke=args.smoke)
+    elif args.command == "train-sasrec":
+        from genrec.models import sasrec
+        sasrec.run(cfg, smoke=args.smoke, tag=args.tag)
     elif args.command == "evaluate":
         from genrec.eval import run_eval
         run_eval.run(cfg, methods=args.methods.split(","), smoke=args.smoke,

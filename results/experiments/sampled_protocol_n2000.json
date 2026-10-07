@@ -60,7 +60,13 @@
       "ndcg@10": 0.2677,
       "wall_seconds": 1128.8,
       "ms_per_user": 564.39
+    },
+    "sasrec": {
+      "hr@10": 0.334,
+      "ndcg@10": 0.1929,
+      "wall_seconds": 16.8,
+      "ms_per_user": 8.42
     }
   },
-  "total_wall_seconds": 1959.7
+  "total_wall_seconds": 51.0
 }
