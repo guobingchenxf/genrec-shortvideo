@@ -31,8 +31,8 @@
     "ndcg@10": 0.24281765236249142,
     "coverage@50": 0.21830723340790456,
     "n_users": 1411,
-    "eval_wall_seconds": 286.4,
-    "ms_per_user": 203.01,
+    "eval_wall_seconds": 83.2,
+    "ms_per_user": 58.95,
     "smoke": false
   },
   "gen-sid-v2": {
@@ -43,8 +43,8 @@
     "ndcg@10": 0.3599667163450978,
     "coverage@50": 0.18866517524235646,
     "n_users": 1411,
-    "eval_wall_seconds": 397.9,
-    "ms_per_user": 281.99,
+    "eval_wall_seconds": 99.4,
+    "ms_per_user": 70.47,
     "smoke": false
   },
   "gen-raw": {
@@ -79,8 +79,8 @@
     "ndcg@10": 0.39484808580813846,
     "coverage@50": 0.18521625652498136,
     "n_users": 1411,
-    "eval_wall_seconds": 394.3,
-    "ms_per_user": 279.46,
+    "eval_wall_seconds": 91.3,
+    "ms_per_user": 64.67,
     "smoke": false
   },
   "gen-sid-b3": {
@@ -91,8 +91,8 @@
     "ndcg@10": 0.5178342765744591,
     "coverage@50": 0.1593027591349739,
     "n_users": 1411,
-    "eval_wall_seconds": 785.5,
-    "ms_per_user": 556.71,
+    "eval_wall_seconds": 150.2,
+    "ms_per_user": 106.43,
     "smoke": false
   },
   "sasrec": {

@@ -1,5 +1,5 @@
 {
-  "note": "D2：gen-sid-b3 的 beam 成本-质量 Pareto。各点在同一会话/同线程数下实测；beam=50 参考点来自主表（另一会话，延迟可比性注明）。",
+  "note": "D2：gen-sid-b3 的 beam 成本-质量 Pareto。各点在同一会话/同线程数下实测；beam=50 参考点来自主表（另一会话，延迟可比性注明）。；D1：延迟为前缀缓存解码（cached）版本，naive 对照见 *_naive 字段；同会话重测（d1_latency_control.json）",
   "method": "gen-sid-b3",
   "protocol": "dense full-observation (1,411 users)",
   "threads": 4,
@@ -9,54 +9,66 @@
       "recall@50": 0.0004360901196865979,
       "ndcg@10": 0.0611452674619755,
       "coverage@50": 0.027870991797166293,
-      "ms_per_user": 33.98,
-      "eval_wall_seconds": 47.9,
-      "source": "this_run"
+      "ms_per_user": 7.39,
+      "eval_wall_seconds": 10.4,
+      "source": "this_run",
+      "ms_per_user_naive": 33.98,
+      "eval_wall_seconds_naive": 47.9
     },
     "2": {
       "recall@10": 0.0010758236583081372,
       "recall@50": 0.0010758236583081372,
       "ndcg@10": 0.13298911981477007,
       "coverage@50": 0.051081282624906785,
-      "ms_per_user": 52.49,
-      "eval_wall_seconds": 74.1,
-      "source": "this_run"
+      "ms_per_user": 6.15,
+      "eval_wall_seconds": 8.7,
+      "source": "this_run",
+      "ms_per_user_naive": 52.49,
+      "eval_wall_seconds_naive": 74.1
     },
     "5": {
       "recall@10": 0.003093379094654182,
       "recall@50": 0.003093379094654182,
       "ndcg@10": 0.2740375528436077,
       "coverage@50": 0.08892617449664429,
-      "ms_per_user": 80.45,
-      "eval_wall_seconds": 113.5,
-      "source": "this_run"
+      "ms_per_user": 10.3,
+      "eval_wall_seconds": 14.5,
+      "source": "this_run",
+      "ms_per_user_naive": 80.45,
+      "eval_wall_seconds_naive": 113.5
     },
     "10": {
       "recall@10": 0.007095930212115729,
       "recall@50": 0.007095930212115729,
       "ndcg@10": 0.4660877325030144,
       "coverage@50": 0.1115771812080537,
-      "ms_per_user": 131.51,
-      "eval_wall_seconds": 185.6,
-      "source": "this_run"
+      "ms_per_user": 14.04,
+      "eval_wall_seconds": 19.8,
+      "source": "this_run",
+      "ms_per_user_naive": 131.51,
+      "eval_wall_seconds_naive": 185.6
     },
     "20": {
       "recall@10": 0.008353771136621188,
       "recall@50": 0.015124670905717733,
       "ndcg@10": 0.5179312032629637,
       "coverage@50": 0.13329604772557793,
-      "ms_per_user": 256.27,
-      "eval_wall_seconds": 361.6,
-      "source": "this_run"
+      "ms_per_user": 30.04,
+      "eval_wall_seconds": 42.4,
+      "source": "this_run",
+      "ms_per_user_naive": 256.27,
+      "eval_wall_seconds_naive": 361.6
     },
     "50": {
       "recall@10": 0.008349009232456746,
       "recall@50": 0.03775364248463479,
       "ndcg@10": 0.5178342765744591,
       "coverage@50": 0.1593027591349739,
-      "ms_per_user": 556.71,
-      "eval_wall_seconds": 785.5,
-      "source": "main_table（beam=50 主实验，另一会话）"
+      "ms_per_user": 106.43,
+      "eval_wall_seconds": 150.2,
+      "source": "main_table（beam=50 主实验，另一会话）",
+      "ms_per_user_naive": 556.71,
+      "eval_wall_seconds_naive": 785.5
     }
   },
   "total_wall_seconds": 785.6

@@ -4,6 +4,7 @@
 """
 
 import numpy as np
+import torch
 
 from genrec.eval.metrics import ndcg_at_k, recall_at_k
 from genrec.models.seqgen import (
@@ -12,6 +13,7 @@ from genrec.models.seqgen import (
     SidTokenizer,
     beam_next_raw,
     beam_search_sid,
+    beam_search_sid_naive,
     build_training_sequences,
 )
 
@@ -140,3 +142,51 @@ def test_raw_tokenizer_keeps_actions_flag():
     """共享的 block 公式依赖该属性存在。"""
     tok = RawTokenizer(np.array([10, 11]))
     assert tok.use_actions is True
+
+
+def test_cached_decode_equals_naive():
+    """D1：前缀缓存解码与参考实现输出逐元素一致。"""
+    tok = _sid_tok()
+    torch.manual_seed(0)
+    model = NextTokenLM(tok.vocab_size, d_model=16, n_layers=2, n_heads=2,
+                        max_len=64)
+    model.eval()
+    ctxs = [tok.encode_context(np.array([10, 11]), np.array([True, True]),
+                               np.array([1, 2]), max_items=4),
+            tok.encode_context(np.array([12]), np.array([True]),
+                               np.array([0]), max_items=4)]
+    a = beam_search_sid_naive(model, tok, ctxs, beam=8, batch_users=2)
+    b = beam_search_sid(model, tok, ctxs, beam=8, batch_users=2)
+    assert a == b
+
+
+def test_cached_decode_variable_lengths_large_beam():
+    """不同长度 context 同批 + 大 beam 下的等价性（覆盖 pad 掩码路径）。"""
+    tok = _sid_tok()
+    torch.manual_seed(1)
+    model = NextTokenLM(tok.vocab_size, d_model=32, n_layers=2, n_heads=2,
+                        max_len=64)
+    model.eval()
+    short = tok.encode_context(np.array([13]), np.array([True]),
+                               np.array([3]), max_items=6)
+    long_ = tok.encode_context(np.array([10, 11, 12, 13]),
+                               np.array([True, True, True, True]),
+                               np.array([0, 1, 2, 3]), max_items=6)
+    a = beam_search_sid_naive(model, tok, [short, long_], beam=50,
+                              batch_users=2)
+    b = beam_search_sid(model, tok, [short, long_], beam=50, batch_users=2)
+    assert a == b
+
+
+def test_cached_decode_falls_back_for_gru():
+    """GRU 骨干自动回退参考实现（结果一致）。"""
+    tok = _sid_tok()
+    torch.manual_seed(2)
+    model = NextTokenLM(tok.vocab_size, d_model=16, n_layers=1, n_heads=2,
+                        backbone="gru", max_len=64)
+    model.eval()
+    ctxs = [tok.encode_context(np.array([10]), np.array([True]),
+                               np.array([0]), max_items=3)]
+    a = beam_search_sid_naive(model, tok, ctxs, beam=5, batch_users=1)
+    b = beam_search_sid(model, tok, ctxs, beam=5, batch_users=1)
+    assert a == b

@@ -1,0 +1,32 @@
+{
+  "note": "同进程/同段对照：naive=beam_search_sid_naive，cached=D1 前缀缓存解码",
+  "method": "gen-sid-b3",
+  "beam": 50,
+  "n_users": 128,
+  "naive_ms_per_user": 568.04,
+  "cached_ms_per_user": 129.92,
+  "speedup": 4.37,
+  "lists_identical": "128/128",
+  "beam_points_cached_full": {
+    "1": {
+      "ms_per_user": 7.39,
+      "eval_wall_seconds": 10.4
+    },
+    "2": {
+      "ms_per_user": 6.15,
+      "eval_wall_seconds": 8.7
+    },
+    "5": {
+      "ms_per_user": 10.3,
+      "eval_wall_seconds": 14.5
+    },
+    "10": {
+      "ms_per_user": 14.04,
+      "eval_wall_seconds": 19.8
+    },
+    "20": {
+      "ms_per_user": 30.04,
+      "eval_wall_seconds": 42.4
+    }
+  }
+}

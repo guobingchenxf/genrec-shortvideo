@@ -1,0 +1,47 @@
+{
+  "lists_gen-sid.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-v2.npz": {
+    "users": 1411,
+    "identical": 1410,
+    "identical_ratio": 0.999291
+  },
+  "lists_gen-sid-b1.npz": {
+    "users": 1411,
+    "identical": 1409,
+    "identical_ratio": 0.998583
+  },
+  "lists_gen-sid-b3.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-b3_beam1.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-b3_beam2.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-b3_beam5.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-b3_beam10.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  },
+  "lists_gen-sid-b3_beam20.npz": {
+    "users": 1411,
+    "identical": 1411,
+    "identical_ratio": 1.0
+  }
+}

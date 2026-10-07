@@ -6,7 +6,7 @@
   "ndcg@10": 0.5178342765744591,
   "coverage@50": 0.1593027591349739,
   "n_users": 1411,
-  "eval_wall_seconds": 785.5,
-  "ms_per_user": 556.71,
+  "eval_wall_seconds": 150.2,
+  "ms_per_user": 106.43,
   "smoke": false
 }

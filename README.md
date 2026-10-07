@@ -108,7 +108,9 @@ python scripts/analyze_diversity.py      # E6 列表多样性/新颖性
 python scripts/run_convergence_campaign.py   # 收敛/种子战役：3 epoch + 种子方差（约 6.8h）
 python scripts/run_e3_d2_campaign.py     # E3/D2 战役：行为 token 消融 + beam Pareto（约 77min）
 python scripts/run_c2_sasrec.py           # C2 战役：SASRec-lite 训练 + 双协议评估（约 34min）
-pytest -q                                # 45 项测试（仅用合成数据）
+python scripts/run_d1_cache_eval.py       # D1：解码等价性验证 + 延迟重评（约 24min）
+python scripts/run_d1_latency_control.py  # D1：同条件对照（naive vs cached）
+pytest -q                                # 48 项测试（仅用合成数据）
 ```
 
 常用干跑（不产正式结论）：`prepare --smoke` / `train-rqvae --smoke` / `train-gen ... --smoke` /
@@ -122,13 +124,15 @@ pytest -q                                # 45 项测试（仅用合成数据）
 |---|---|---|---|---|---|
 | 流行度 | 0.00285 | 0.00820 | 0.1926 | 0.50% | 0.6 |
 | ItemCF | **0.01484** | **0.05852** | **0.9469** | 0.83% | 1.5 |
-| gen-sid（v1，256 码本） | 0.00370 | 0.01515 | 0.2428 | 21.8% | 203 |
-| gen-sid-v2（1024 码本） | 0.00555 | 0.02483 | 0.3600 | 18.9% | 282 |
-| gen-sid-b1（bge 特征） | 0.00626 | 0.02898 | 0.3948 | 18.5% | 279 |
-| **gen-sid-b3（碰撞额外码位）** | 0.00835 | **0.03775** | **0.5178** | 15.9% | 557 |
+| gen-sid（v1，256 码本） | 0.00370 | 0.01515 | 0.2428 | 21.8% | 58.9 |
+| gen-sid-v2（1024 码本） | 0.00555 | 0.02483 | 0.3600 | 18.9% | 70.5 |
+| gen-sid-b1（bge 特征） | 0.00626 | 0.02898 | 0.3948 | 18.5% | 64.7 |
+| **gen-sid-b3（碰撞额外码位）** | 0.00835 | **0.03775** | **0.5178** | 15.9% | 106.4 |
 | gen-raw（对照） | 0.00791 | 0.03833 | 0.4966 | 14.8% | 3.5 |
 | gru-raw（基线） | 0.00837 | 0.03713 | 0.5640 | 2.6% | 2.4 |
 | sasrec（SASRec-lite） | 0.00619 | 0.02862 | 0.3948 | 19.5% | 0.77 |
+
+（延迟列为 D1 前缀缓存解码重测值；naive 存档 203 / 282 / 279 / 557ms，同条件对照加速 4.37×——实验报告 §6.12。）
 
 **标准协议复验**（留一法 + 100 负采样，2,000 用户；序列似然打分，HR@10）：
 
@@ -149,8 +153,9 @@ pytest -q                                # 45 项测试（仅用合成数据）
 
 - **行为 token 消融（E3，新变体 sid-b3-na）**：关闭 watch_ratio 行为 token 后，五项指标全部方向为负但很小——
   稠密三项完全落在 b3 三种子分布内、采样两项略低于下沿 0.15~0.27pp → **未检测到收益**（序列 -19%、评估快 17%）。
-- **beam 成本-质量 Pareto（D2）**：top-10 质量在 **beam≈20 饱和**（ndcg 0.5179 ≈ beam50 的 0.5178，延迟 256ms 仅 46%）；
-  beam=10 保留 90% ndcg、延迟 24%；recall@50 受候选清单长度约束（beam50 0.0378 vs beam20 0.0151）；coverage 2.8%→15.9%。
+- **beam 成本-质量 Pareto（D2）**：top-10 质量在 **beam≈20 饱和**（ndcg 0.5179 ≈ beam50 的 0.5178，延迟 30ms 仅 28%）；
+  beam=10 保留 90% ndcg、延迟 13%；recall@50 受候选清单长度约束（beam50 0.0378 vs beam20 0.0151）；coverage 2.8%→15.9%。
+  （延迟为 D1 前缀缓存解码同会话重测值。）
 
 **SASRec-lite 标准基线（C2，2026-10-07 实测；详见实验报告 §6.9）**：
 
@@ -166,6 +171,12 @@ pytest -q                                # 45 项测试（仅用合成数据）
   （仅 v2 有 0.008 级微弱命中）；**只有 SID 家族会给上新物品曝光**（v1 5.39% → b3 0.16%，非 SID 方法全为 0）。
 - **多样性与新颖性（E6）**：v1 新颖性最高（13.92）但消除碰撞后 b3 回落到 raw 同级（11.99 vs 11.95）；
   v1 的 ILD 极低（0.36）同样是碰撞展开后果——"SID 不自动带来多样性"证据链第三次闭合。
+
+**推理优化（D1，2026-10-07 实测；详见实验报告 §6.12）**：
+
+- **context 前缀 K/V 缓存解码**（三重等价性验证：单测 / 12,700 条列表全量对照 / 归档哈希一致）：
+  同条件对照 **4.37×**（568→129.9ms/用户）；全量重测各模型加速 3.4~5.2×，b3 由存档 557ms 降至 **106.4ms/用户**。
+- beam 曲线（同会话重测）：top-10 质量 beam≈20 饱和时延迟仅 **30ms**——直出 top-10 延迟可再减约 3.5 倍。
 
 **五条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
 修复后，**b3 在两个协议上基本追平原生 ID**（dense recall@50 达 raw 的 98.5%、ndcg@10 反超 4%；
@@ -191,7 +202,7 @@ src/genrec/
   data/validate.py        官方口径校验（errors/warnings 分离）
   data/preprocess.py      样本构建/评估协议/内容特征（防泄漏）
   models/rqvae.py         RQ-VAE（STE/死码重启/标准化）
-  models/seqgen.py        Tokenizer/trie 受限解码/beam/因果 LM
+  models/seqgen.py        Tokenizer/trie 受限解码/beam（D1 前缀缓存）/因果 LM
   models/sasrec.py        C2：SASRec-lite 基线（因果自注意力，全词表 CE）
   train.py                训练编排（四个变体）
   eval/metrics.py         指标（recall/ndcg/hit_rate/coverage/ILD/新颖性）
@@ -203,7 +214,8 @@ scripts/build_extended_sid.py  b3 扩展 SID      scripts/run_convergence_campai
 scripts/run_e3_d2_campaign.py  E3/D2 战役（行为 token 消融 + beam Pareto）
 scripts/run_c2_sasrec.py  C2 战役（SASRec-lite 训练 + 双协议评估）
 scripts/analyze_coldstart.py  E5 冷启动细化   scripts/analyze_diversity.py  E6 多样性/新颖性
-tests/                    45 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融/多样性指标）
+scripts/run_d1_cache_eval.py  D1 等价性验证与延迟重评   scripts/run_d1_latency_control.py  D1 同条件对照
+tests/                    48 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融/多样性/解码等价性）
 docs/                     实验报告 / 面试材料 / 论文与出处
 ```
 
@@ -217,6 +229,7 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 | 收敛/种子战役（6 次训练 + 12 次双协议评估） | 24,592s ≈ 6.8h |
 | E3/D2 战役（5 点 beam 扫描 + 1 次训练 + 双协议评估） | 4,646s ≈ 77min |
 | SASRec-lite 训练（150k × 6 epoch，d64） | 2,036s ≈ 34min（471 samples/s） |
+| D1 等价性重评 + 同条件对照（9 组全量 + 128 用户 A/B） | 约 27min |
 | 评估（1,411 用户） | 基线 <5s；生成模型 286~398s（beam=50, CPU） |
 | 训练吞吐 | **4 线程 206 samples/s；8 线程仅 19（线程超订）** |
 
@@ -238,10 +251,10 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 
 - **离线研究原型**：无线上 A/B、无线上收益声明；标签为观看行为，非互动全信号；
 - **轻量预算**：主表为 1 epoch × 150k 样本；已补 3 epoch 收敛对照与三种子方差（§6.6），未做超参搜索；
-- **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557ms/用户（b1 279ms、raw 3.5ms），上线需 prefix 缓存等优化（待运行）；
+- **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557→106ms/用户（D1 前缀缓存，§6.12；b1 279→65ms、raw 3.5ms），进一步优化（增量 KV/量化）待运行；
 - **消融与曲线**：行为 token 未检测到收益（E3 负结果，§6.7）；top-10 质量 beam≈20 饱和、直出场景延迟可减半（D2，§6.8）；
 - **标准基线（阴性）**：SASRec-lite 两协议均低于 GRU4Rec-lite 与生成式模型；已定位为数据分布效应（回看回声率随时间衰减），非实现错误（§6.9）；
-- **待运行**：完整版 SASRec（超参搜索——本版为 lite 档）、prefix 缓存推理优化。
+- **待运行**：完整版 SASRec（超参搜索——本版为 lite 档）、更深推理优化（增量 KV/量化）。
 
 ## 11. 引用与许可
 

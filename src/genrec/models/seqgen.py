@@ -10,9 +10,13 @@
   [BOS] + 历史行为 token 序列 + 目标物品 token；pad 放序列尾部（不污染因果注意力）。
 - 推理：SID 变体按 trie 做逐级受限解码 + beam search（只生成合法 SID）；
   raw 变体单步 beam。碰撞 SID 在解码时按热度展开候选组（口径统一、如实报告）。
+- D1：SID 解码默认使用"context 前缀 K/V 缓存"实现（消除每步对整段前缀的重复计算）；
+  beam_search_sid_naive 为等价性测试用的参考实现（语义与缓存版一致）。
 - 行为 token 可关闭（use_actions=False，E3 消融）：每个行为只保留 SID token，
   目标物品 token 序列不变（raw 变体暂不支持该开关）。
 """
+
+import math
 
 import numpy as np
 import torch
@@ -215,9 +219,194 @@ def _pad_rows(token_lists, device):
     return x.to(device)
 
 
+def _cached_sa_block(attn, x, past_k, past_v, key_bias):
+    """复刻 nn.MultiheadAttention 前向（batch_first），支持拼接历史 K/V。
+
+    x: (B, T, d)；past_k/past_v: None 或 (B, H, T_past, d_h)；
+    key_bias: None 或 (B, 1, T, T_past + T) 加性掩码（-inf 屏蔽）。返回 (out, k, v)。
+    """
+    b, t, e = x.shape
+    h = attn.num_heads
+    d_h = e // h
+    q, k, v = nn.functional.linear(
+        x, attn.in_proj_weight, attn.in_proj_bias).chunk(3, dim=-1)
+    q = q.reshape(b, t, h, d_h).transpose(1, 2)
+    k = k.reshape(b, t, h, d_h).transpose(1, 2)
+    v = v.reshape(b, t, h, d_h).transpose(1, 2)
+    if past_k is not None:
+        k = torch.cat([past_k, k], dim=2)
+        v = torch.cat([past_v, v], dim=2)
+    scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_h)
+    if key_bias is not None:
+        scores = scores + key_bias
+    weight = torch.softmax(scores, dim=-1)
+    out = torch.matmul(weight, v).transpose(1, 2).reshape(b, t, e)
+    out = nn.functional.linear(out, attn.out_proj.weight, attn.out_proj.bias)
+    return out, k, v
+
+
+def _cached_layer_forward(layer, x, past=None, key_bias=None):
+    """复刻 nn.TransformerEncoderLayer（norm_first=True）前向，支持历史 K/V。"""
+    sa_out, k_all, v_all = _cached_sa_block(
+        layer.self_attn, layer.norm1(x),
+        past[0] if past is not None else None,
+        past[1] if past is not None else None,
+        key_bias)
+    x = x + layer.dropout1(sa_out)
+    ff = layer.linear2(
+        layer.dropout(layer.activation(layer.linear1(layer.norm2(x)))))
+    x = x + layer.dropout2(ff)
+    return x, (k_all, v_all)
+
+
+def _prefix_bias(pad):
+    """前缀自注意力加性掩码 (B, 1, T, T)：因果（j <= i）且屏蔽 pad 键。"""
+    t = pad.shape[1]
+    idx = torch.arange(t, device=pad.device)
+    allowed = (idx[None, :, None] >= idx[None, None, :]) & ~pad[:, None, :]
+    bias = torch.zeros(pad.shape[0], t, t, device=pad.device)
+    bias.masked_fill_(~allowed, float("-inf"))
+    return bias.unsqueeze(1)
+
+
+def _tail_logprobs(model, rows, owner, ctx_t, t_pre, pad, past, device,
+                   row_chunk=256):
+    """尾部（已生成码字 + 末位槽）log 概率：注意力横跨 [缓存前缀 + 尾部]。
+
+    与原实现保持一致：短于批次最大长度的行取"padding 末位槽"的隐状态
+    （该槽本身是 padding，但因果可见整行真实 token 的"幽灵查询"）。
+    """
+    r = len(rows)
+    tails = [st["seq"][int(ctx_t[ui]):] for st, ui in zip(rows, owner)]
+    t_tail = len(tails[0])
+    owner_t = torch.tensor(owner, device=device)
+    base = ctx_t[owner_t][:, None]
+    # 尾部 tokens + 末位槽（tokens=0、位置=批次末位）
+    tail_ids = torch.cat([
+        torch.tensor(tails, device=device),
+        torch.zeros(r, 1, dtype=torch.long, device=device)], dim=1)
+    pos_tail = torch.cat([
+        base + torch.arange(t_tail, device=device)[None, :],
+        torch.full((r, 1), t_pre + t_tail - 1, dtype=torch.long,
+                   device=device)], dim=1)                # (r, t_tail + 1)
+    k_abs = torch.cat([
+        torch.arange(t_pre, device=device)[None, :].expand(r, -1),
+        base + torch.arange(t_tail, device=device)[None, :],
+        pos_tail[:, -1:]], dim=1)                        # (r, t_pre+t_tail+1)
+    pad_full = torch.cat(
+        [pad[owner_t],
+         torch.zeros(r, t_tail, dtype=torch.bool, device=device),
+         torch.ones(r, 1, dtype=torch.bool, device=device)], dim=1)
+    allowed = (k_abs[:, None, :] <= pos_tail[:, :, None]) & ~pad_full[:, None, :]
+    bias = torch.zeros(r, t_tail + 1, t_pre + t_tail + 1, device=device)
+    bias.masked_fill_(~allowed, float("-inf"))
+    bias = bias.unsqueeze(1)                                 # (r,1,T,tk)
+    emb = model.emb(tail_ids) + model.pos(pos_tail)
+    # 行短于批次最大长度 → 取末位槽（末列）；否则取最后一个真实尾部 token
+    sel = torch.where(ctx_t[owner_t] >= t_pre,
+                      torch.full_like(owner_t, t_tail - 1),
+                      torch.full_like(owner_t, t_tail))
+    logits = torch.empty(r, model.head.out_features, device=device)
+    for r0 in range(0, r, row_chunk):
+        r1 = min(r0 + row_chunk, r)
+        hh = emb[r0:r1]
+        ob = owner_t[r0:r1]
+        for li, layer in enumerate(model.backbone.layers):
+            pk, pv = past[li]
+            hh, _ = _cached_layer_forward(layer, hh, (pk[ob], pv[ob]),
+                                          bias[r0:r1])
+        idx = torch.arange(r1 - r0, device=device)
+        logits[r0:r1] = model.head(hh[idx, sel[r0:r1]]).float()
+    return torch.log_softmax(logits, dim=-1).cpu().numpy()
+
+
 @torch.no_grad()
 def beam_search_sid(model, tok, contexts, beam=50, batch_users=32, device="cpu"):
-    """对每个 context（token 列表）做 L 步受限解码，返回排序后的视频 id 列表。"""
+    """（D1）带 context 前缀缓存的受限解码，输出与 beam_search_sid_naive 一致。
+
+    思路：BOS+上下文的 K/V 每用户只算一次；前向各步仅处理"已生成码字"
+    （≤ 层数 - 1 个 token），注意力横跨 [缓存前缀 + 尾部]。
+    仅支持 transformer 骨干，其他骨干自动回退参考实现。
+    """
+    if getattr(model, "backbone_name", "transformer") != "transformer":
+        return beam_search_sid_naive(model, tok, contexts, beam, batch_users,
+                                     device)
+    model.eval()
+    out_lists = []
+    for s in range(0, len(contexts), batch_users):
+        chunk = contexts[s:s + batch_users]
+        b = len(chunk)
+        x = _pad_rows(chunk, device)                     # (b, Tpre)，尾部 padding
+        t_pre = x.shape[1]
+        pad = (x == PAD)
+        pos0 = torch.arange(t_pre, device=device)[None, :].expand(b, -1)
+        h = model.emb(x) + model.pos(pos0)
+        bias0 = _prefix_bias(pad)
+        past = []
+        for layer in model.backbone.layers:
+            h, kv = _cached_layer_forward(layer, h, None, bias0)
+            past.append(kv)
+        ctx_len = [len(c) for c in chunk]
+        ctx_t = torch.tensor(ctx_len, device=device)
+        # 与原实现完全一致：step0 取 padding 批次的"末位槽"隐状态
+        # （短于批次最大长度的行，该槽为 padding 的"幽灵查询"；保持既有结果不变）
+        logits0 = model.head(h[:, -1, :]).float()
+
+        states = [[{"prefix": (), "cum": 0.0, "seq": list(c)}]
+                  for c in chunk]
+        for step in range(tok.n_levels):
+            rows, owner = [], []
+            for ui, beams in enumerate(states):
+                for st in beams:
+                    rows.append(st)
+                    owner.append(ui)
+            if not rows:
+                break
+            if step == 0:
+                logp = torch.log_softmax(logits0, dim=-1).cpu().numpy()
+            else:
+                logp = _tail_logprobs(model, rows, owner, ctx_t, t_pre,
+                                      pad, past, device)
+            for ui in range(b):
+                cand = []
+                for i, o in enumerate(owner):
+                    if o != ui:
+                        continue
+                    st = rows[i]
+                    allowed = tok.allowed_codes(st["prefix"])
+                    if not allowed:
+                        continue
+                    tids = np.array([2 + step * tok.codebook_size + c
+                                     for c in allowed])
+                    scores = logp[i, tids] + st["cum"]
+                    order = np.argsort(-scores)[:beam]
+                    for k in order:
+                        code = allowed[int(k)]
+                        cand.append({
+                            "prefix": st["prefix"] + (code,),
+                            "cum": float(scores[k]),
+                            "seq": st["seq"] + [2 + step * tok.codebook_size + code],
+                        })
+                cand.sort(key=lambda d: -d["cum"])
+                states[ui] = cand[:beam]
+        for ui in range(b):
+            ranked, seen = [], set()
+            for st in states[ui]:
+                if len(st["prefix"]) != tok.n_levels:
+                    continue
+                for vi in tok.videos_for_sid(st["prefix"]):
+                    vid = int(tok.video_ids[vi])
+                    if vid not in seen:
+                        seen.add(vid)
+                        ranked.append(vid)
+            out_lists.append(ranked)
+    return out_lists
+
+
+@torch.no_grad()
+def beam_search_sid_naive(model, tok, contexts, beam=50, batch_users=32,
+                          device="cpu"):
+    """对每个 context（token 列表）做 L 步受限解码（D1 参考实现，勿改语义）。"""
     model.eval()
     out_lists = []
     for s in range(0, len(contexts), batch_users):
