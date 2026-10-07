@@ -8,6 +8,10 @@
 > 所有实验数字均来自本仓库实测存档（`results/experiments/*.json`），未运行项明确标注。
 > 详细版见 [`docs/实验报告.md`](docs/实验报告.md)；面试讲稿与追问见 [`docs/面试材料.md`](docs/面试材料.md)。
 
+![架构总览（数据 → 语义 ID → 序列建模 → 双协议评估）](docs/assets/architecture.png)
+
+![碰撞率 → 质量的四点剂量-响应（稠密 recall@50 / gen-raw）](docs/assets/collision_curve.png)
+
 ---
 
 ## 1. 项目背景与问题定义
