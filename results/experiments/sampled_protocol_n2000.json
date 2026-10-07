@@ -64,9 +64,9 @@
     "sasrec": {
       "hr@10": 0.334,
       "ndcg@10": 0.1929,
-      "wall_seconds": 16.8,
-      "ms_per_user": 8.42
+      "wall_seconds": 1.2,
+      "ms_per_user": 0.62
     }
   },
-  "total_wall_seconds": 51.0
+  "total_wall_seconds": 33.7
 }

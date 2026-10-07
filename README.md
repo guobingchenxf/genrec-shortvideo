@@ -14,13 +14,14 @@
 
 生成式推荐（TIGER 路线）：把物品编码为**语义 ID**、把推荐重构为**序列生成**。
 它宣称解决 item 词表过大与冷启动问题，并在多个基准上超过判别式方法——
-但"**在什么条件下成立、瓶颈在哪**"，值得用一个受控实验去回答。本项目实际回答三个问题：
+但"**在什么条件下成立、瓶颈在哪**"，值得用一个受控实验去回答。本项目实际回答四个问题：
 
 | 问题 | 本项目的答案（见 §7） |
 |---|---|
 | Q1：同架构、同预算下，SID 生成 vs 原生 ID 生成谁更强？ | **初版负结果 → 诊断修复后追平 → 收敛预算下反超**：修复碰撞与特征后 dense recall@50 达 raw 的 98.5%、采样 HR@10 达 97.3%；同预算 3 epoch 下四项指标全面反超（§6，单种子） |
 | Q2：碰撞率是不是 SID 弱势的主因？ | **是主导因素**：碰撞率 39.2%→22.2%→9.3%→0% 对应 recall@50/raw 比值 40%→65%→76%→**98.5%**（四点剂量-响应） |
 | Q3：什么场景下 SID 生成有独有优势？ | **修正后的答案**：早期的"长尾优势"是碰撞展开的配置副产物（消除碰撞后消失）；长尾覆盖需要显式的多样性/探索机制，不能指望 SID 自动带来 |
+| Q4（C2 补充）：工业标准基线 SASRec 的表现？ | **阴性结果 + 完整诊断链**：SASRec-lite 两协议均弱于 GRU4Rec-lite 与生成式模型；根因锁定"训练期回看回声结构 × 短窗口点积打分"（回看率 28.1%→7.2%→3.4% 随时间衰减），非实现错误；结论仅限 lite 档（实验报告 §6.9） |
 
 ## 2. 数据集（KuaiRec）
 
@@ -91,6 +92,7 @@ python -m genrec.cli train-gen --variant sid-b3  # 生成模型（碰撞额外�
 python -m genrec.cli train-gen --variant sid-b3-na  # E3 消融：关闭行为 token
 python -m genrec.cli train-gen --variant raw     # 对照：原生 ID 生成
 python -m genrec.cli train-gen --variant raw-gru # 基线：GRU4Rec-lite
+python -m genrec.cli train-sasrec           # C2：SASRec-lite 基线（全词表 CE）
 python -m genrec.cli evaluate            # 主表：默认六方法（增量合并进 main_table.json）
 python -m genrec.cli evaluate --methods gen-sid-b1,gen-sid-b3   # 补 B 组两行
 python -m genrec.cli evaluate --methods gen-sid,gen-sid-v2 --beam 10   # beam 消融
@@ -99,7 +101,8 @@ python -m genrec.cli generate --user-id 14 --topk 10   # 单用户生成 demo
 python scripts/analyze_buckets.py        # 长尾/冷启动分桶分析
 python scripts/run_convergence_campaign.py   # 收敛/种子战役：3 epoch + 种子方差（约 6.8h）
 python scripts/run_e3_d2_campaign.py     # E3/D2 战役：行为 token 消融 + beam Pareto（约 77min）
-pytest -q                                # 35 项测试（仅用合成数据）
+python scripts/run_c2_sasrec.py           # C2 战役：SASRec-lite 训练 + 双协议评估（约 34min）
+pytest -q                                # 41 项测试（仅用合成数据）
 ```
 
 常用干跑（不产正式结论）：`prepare --smoke` / `train-rqvae --smoke` / `train-gen ... --smoke` /
@@ -119,12 +122,13 @@ pytest -q                                # 35 项测试（仅用合成数据）
 | **gen-sid-b3（碰撞额外码位）** | 0.00835 | **0.03775** | **0.5178** | 15.9% | 557 |
 | gen-raw（对照） | 0.00791 | 0.03833 | 0.4966 | 14.8% | 3.5 |
 | gru-raw（基线） | 0.00837 | 0.03713 | 0.5640 | 2.6% | 2.4 |
+| sasrec（SASRec-lite） | 0.00619 | 0.02862 | 0.3948 | 19.5% | 0.77 |
 
 **标准协议复验**（留一法 + 100 负采样，2,000 用户；序列似然打分，HR@10）：
 
-| 方法 | random | pop | itemcf | gen-sid | gen-sid-v2 | gen-sid-b1 | gen-sid-b3 | gen-raw | gru-raw |
-|---|---|---|---|---|---|---|---|---|---|
-| HR@10 | 0.092 | 0.159 | 0.517 | 0.292 | 0.411 | 0.426 | **0.470** | 0.483 | 0.501 |
+| 方法 | random | pop | itemcf | gen-sid | gen-sid-v2 | gen-sid-b1 | gen-sid-b3 | gen-raw | gru-raw | sasrec |
+|---|---|---|---|---|---|---|---|---|---|---|
+| HR@10 | 0.092 | 0.159 | 0.517 | 0.292 | 0.411 | 0.426 | **0.470** | 0.483 | 0.501 | 0.334 |
 
 **训练预算与种子方差（2026-10-07 实测；详见实验报告 §6.6）**：
 
@@ -141,6 +145,14 @@ pytest -q                                # 35 项测试（仅用合成数据）
   稠密三项完全落在 b3 三种子分布内、采样两项略低于下沿 0.15~0.27pp → **未检测到收益**（序列 -19%、评估快 17%）。
 - **beam 成本-质量 Pareto（D2）**：top-10 质量在 **beam≈20 饱和**（ndcg 0.5179 ≈ beam50 的 0.5178，延迟 256ms 仅 46%）；
   beam=10 保留 90% ndcg、延迟 24%；recall@50 受候选清单长度约束（beam50 0.0378 vs beam20 0.0151）；coverage 2.8%→15.9%。
+
+**SASRec-lite 标准基线（C2，2026-10-07 实测；详见实验报告 §6.9）**：
+
+- 同数据预算的因果自注意力基线（150k×6ep、全词表 CE、d64）：稠密 recall@50 **0.02862** / ndcg@10 0.3948、
+  采样 HR@10 **0.3340** —— 两协议均弱于 GRU4Rec-lite（0.0371/0.501）与生成式模型（**阴性结果，如实记录**）。
+- 诊断链：管线三重核验；**回看回声率 28.1%（训练窗）→ 7.2%（未来窗口）→ 3.4%（最终项）随数据集时间衰减**；
+  LOO 上"末项回声"得分 ≥ 目标的比例 84.7%；容量 d64→d128 反使 LOO 0.334→0.208（回声被放大）。
+- 结论仅限 lite 档配置；延迟 0.77ms/用户（全表最快）。
 
 **五条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
 修复后，**b3 在两个协议上基本追平原生 ID**（dense recall@50 达 raw 的 98.5%、ndcg@10 反超 4%；
@@ -160,13 +172,14 @@ configs/default.yaml      全部超参与路径（无硬编码）
 data/raw/                 原始数据（不入库）     data/processed/ 预处理产物（不入库）
 data/reports/             下载清单/校验报告      results/experiments/ 实验 JSON（入库）
 src/genrec/
-  cli.py                  命令行入口（9 个子命令）
+  cli.py                  命令行入口（10 个子命令）
   config.py               配置加载与路径解析
   data/download.py        多源下载（断点续传 + SHA256）
   data/validate.py        官方口径校验（errors/warnings 分离）
   data/preprocess.py      样本构建/评估协议/内容特征（防泄漏）
   models/rqvae.py         RQ-VAE（STE/死码重启/标准化）
   models/seqgen.py        Tokenizer/trie 受限解码/beam/因果 LM
+  models/sasrec.py        C2：SASRec-lite 基线（因果自注意力，全词表 CE）
   train.py                训练编排（四个变体）
   eval/metrics.py         指标（recall/ndcg/hit_rate/coverage）
   eval/baselines.py       流行度与 ItemCF（含缓存）
@@ -175,6 +188,7 @@ src/genrec/
 scripts/measure_speed.py  CPU 速度标定脚本      scripts/analyze_buckets.py 分桶分析
 scripts/build_extended_sid.py  b3 扩展 SID      scripts/run_convergence_campaign.py  收敛/种子战役
 scripts/run_e3_d2_campaign.py  E3/D2 战役（行为 token 消融 + beam Pareto）
+scripts/run_c2_sasrec.py  C2 战役（SASRec-lite 训练 + 双协议评估）
 tests/                    35 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融序列构建）
 docs/                     实验报告 / 面试材料 / 论文与出处
 ```
@@ -188,6 +202,7 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 | 生成模型训练（150k 样本 ×1 epoch） | GRU 843s；Transformer 853~1,588s |
 | 收敛/种子战役（6 次训练 + 12 次双协议评估） | 24,592s ≈ 6.8h |
 | E3/D2 战役（5 点 beam 扫描 + 1 次训练 + 双协议评估） | 4,646s ≈ 77min |
+| SASRec-lite 训练（150k × 6 epoch，d64） | 2,036s ≈ 34min（471 samples/s） |
 | 评估（1,411 用户） | 基线 <5s；生成模型 286~398s（beam=50, CPU） |
 | 训练吞吐 | **4 线程 206 samples/s；8 线程仅 19（线程超订）** |
 
@@ -211,7 +226,8 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 - **轻量预算**：主表为 1 epoch × 150k 样本；已补 3 epoch 收敛对照与三种子方差（§6.6），未做超参搜索；
 - **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557ms/用户（b1 279ms、raw 3.5ms），上线需 prefix 缓存等优化（待运行）；
 - **消融与曲线**：行为 token 未检测到收益（E3 负结果，§6.7）；top-10 质量 beam≈20 饱和、直出场景延迟可减半（D2，§6.8）；
-- **待运行**：SASRec 标准基线、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
+- **标准基线（阴性）**：SASRec-lite 两协议均低于 GRU4Rec-lite 与生成式模型；已定位为数据分布效应（回看回声率随时间衰减），非实现错误（§6.9）；
+- **待运行**：完整版 SASRec（超参搜索——本版为 lite 档）、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
 
 ## 11. 引用与许可
 
