@@ -31,7 +31,8 @@ from genrec.eval.run_eval import METHOD_VARIANT, SID_FILES
 from genrec.models.seqgen import BOS, NextTokenLM, RawTokenizer, SidTokenizer
 
 DEFAULT_METHODS = ["random", "pop", "itemcf", "gen-sid", "gen-sid-v2",
-                   "gen-sid-b1", "gen-sid-b3", "gen-raw", "gru-raw"]
+                   "gen-sid-b1", "gen-sid-b3", "gen-sid-b3-na",
+                   "gen-raw", "gru-raw"]
 
 
 # ----------------------------------------------------------------------
@@ -192,12 +193,13 @@ def score_generator(cfg, variant, data, users_chunk=4, cands_chunk=32,
     is_sid = bool(ckpt["is_sid"])
     if is_sid:
         z = np.load(processed / f"{SID_FILES[variant]}.npz")
-        tok = SidTokenizer(z["video_ids"], z["codes"])
+        tok = SidTokenizer(z["video_ids"], z["codes"],
+                           use_actions=bool(ckpt.get("use_actions", True)))
     else:
         video_ids = np.load(processed / "video_vocab.npz")["video_ids"]
         tok = RawTokenizer(video_ids)
     max_items = int(ckpt["max_items"])
-    block = (tok.n_levels + 1) if is_sid else 2
+    block = (tok.n_levels if is_sid else 1) + (1 if tok.use_actions else 0)
     tgt_len = tok.n_levels if is_sid else 1
     max_len = int(ckpt.get("max_len") or (1 + max_items * block + tgt_len + 8))
     model = NextTokenLM(

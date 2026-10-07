@@ -13,7 +13,8 @@
 import argparse
 
 # 与 genrec.train.VARIANTS 及 configs 的 gen.variants 保持一致（有测试防漂移）
-TRAIN_GEN_VARIANTS = ["sid", "sid-v2", "sid-b1", "sid-b3", "raw", "raw-gru"]
+TRAIN_GEN_VARIANTS = ["sid", "sid-v2", "sid-b1", "sid-b3", "sid-b3-na",
+                      "raw", "raw-gru"]
 
 
 def main(argv=None):

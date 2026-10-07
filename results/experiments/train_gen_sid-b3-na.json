@@ -1,0 +1,38 @@
+{
+  "variant": "sid-b3-na",
+  "tag": "",
+  "smoke": false,
+  "samples": 150000,
+  "seq_len": 85,
+  "vocab_size": 4103,
+  "max_items": 20,
+  "device": "cpu",
+  "seed": 42,
+  "epochs": 1,
+  "val_samples": 50000,
+  "config": {
+    "max_context_items": 20,
+    "batch_size": 256,
+    "epochs": 1,
+    "lr": 0.001,
+    "seed": 42,
+    "beam_size": 50,
+    "eval_batch_users": 32,
+    "num_threads": 4,
+    "backbone": "transformer",
+    "d_model": 128,
+    "n_layers": 2,
+    "n_heads": 4,
+    "use_actions": false
+  },
+  "epochs_log": [
+    {
+      "epoch": 1,
+      "loss": 2.472856,
+      "wall_seconds": 1895.7,
+      "batches": 586,
+      "samples_per_second": 79.1,
+      "val_loss": 3.697948
+    }
+  ]
+}

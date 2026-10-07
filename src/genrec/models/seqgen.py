@@ -10,6 +10,8 @@
   [BOS] + 历史行为 token 序列 + 目标物品 token；pad 放序列尾部（不污染因果注意力）。
 - 推理：SID 变体按 trie 做逐级受限解码 + beam search（只生成合法 SID）；
   raw 变体单步 beam。碰撞 SID 在解码时按热度展开候选组（口径统一、如实报告）。
+- 行为 token 可关闭（use_actions=False，E3 消融）：每个行为只保留 SID token，
+  目标物品 token 序列不变（raw 变体暂不支持该开关）。
 """
 
 import numpy as np
@@ -31,10 +33,12 @@ def last_valid_items(videos, mask, actions, max_items):
 # 词表 / 序列化
 # ----------------------------------------------------------------------
 class SidTokenizer:
-    def __init__(self, video_ids, codes, n_actions=5, codebook_size=None):
+    def __init__(self, video_ids, codes, n_actions=5, codebook_size=None,
+                 use_actions=True):
         self.video_ids = np.asarray(video_ids, dtype=np.int64)
         self.codes = np.asarray(codes).astype(np.int64)     # (N, levels)
         self.n_levels = int(self.codes.shape[1])
+        self.use_actions = bool(use_actions)
         # 码本大小从码字自动推断（2 的幂），保证训练与推理两端词表一致；
         # 显式传入仅用于测试等特殊场景
         if codebook_size is None:
@@ -61,7 +65,8 @@ class SidTokenizer:
         i = self.index_of[int(video_id)]
         toks = [self.code_token(lv, int(c))
                 for lv, c in enumerate(self.codes[i])]
-        toks.append(self.action_token(action))
+        if self.use_actions:
+            toks.append(self.action_token(action))
         return toks
 
     def encode_context(self, videos, mask, actions, max_items=20):
@@ -100,6 +105,7 @@ class RawTokenizer:
     def __init__(self, video_ids, n_actions=5):
         self.video_ids = np.asarray(video_ids, dtype=np.int64)
         self.n_videos = len(self.video_ids)
+        self.use_actions = True
         self.n_actions = n_actions
         self.vocab_size = 2 + self.n_videos + n_actions
         self.index_of = {int(v): i for i, v in enumerate(self.video_ids)}
@@ -134,7 +140,7 @@ def build_training_sequences(tokenizer, ctx_videos, ctx_mask, ctx_actions,
                              target_videos, max_items, is_sid):
     """返回 (inputs, labels)，形状 (N, L)；pad 在序列尾部，label=PAD 处忽略。"""
     n = len(target_videos)
-    block = (tokenizer.n_levels + 1) if is_sid else 2
+    block = (tokenizer.n_levels if is_sid else 1) + (1 if tokenizer.use_actions else 0)
     tgt_len = tokenizer.n_levels if is_sid else 1
     length = 1 + max_items * block + tgt_len
     inputs = np.zeros((n, length), dtype=np.int64)

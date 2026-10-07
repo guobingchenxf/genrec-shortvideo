@@ -88,6 +88,7 @@ python -m genrec.cli train-gen --variant sid     # 生成模型（SID v1）
 python -m genrec.cli train-gen --variant sid-v2  # 生成模型（SID v2）
 python -m genrec.cli train-gen --variant sid-b1  # 生成模型（神经特征 bge）
 python -m genrec.cli train-gen --variant sid-b3  # 生成模型（碰撞额外码位）
+python -m genrec.cli train-gen --variant sid-b3-na  # E3 消融：关闭行为 token
 python -m genrec.cli train-gen --variant raw     # 对照：原生 ID 生成
 python -m genrec.cli train-gen --variant raw-gru # 基线：GRU4Rec-lite
 python -m genrec.cli evaluate            # 主表：默认六方法（增量合并进 main_table.json）
@@ -97,7 +98,8 @@ python -m genrec.cli evaluate-sampled    # 标准协议（--methods 追加 gen-s
 python -m genrec.cli generate --user-id 14 --topk 10   # 单用户生成 demo
 python scripts/analyze_buckets.py        # 长尾/冷启动分桶分析
 python scripts/run_convergence_campaign.py   # 收敛/种子战役：3 epoch + 种子方差（约 6.8h）
-pytest -q                                # 32 项测试（仅用合成数据）
+python scripts/run_e3_d2_campaign.py     # E3/D2 战役：行为 token 消融 + beam Pareto（约 77min）
+pytest -q                                # 35 项测试（仅用合成数据）
 ```
 
 常用干跑（不产正式结论）：`prepare --smoke` / `train-rqvae --smoke` / `train-gen ... --smoke` /
@@ -133,6 +135,13 @@ pytest -q                                # 32 项测试（仅用合成数据）
   dense ndcg@10 **+1.77±0.45pp（稳定为正）**；采样 HR@10 **-1.92±0.56pp（稳定小劣势）**——
   "未追平"只剩采样协议上一笔小额可测劣势，扩大预算后被反超。
 
+**行为 token 消融与 beam Pareto（2026-10-07 实测；详见实验报告 §6.7/§6.8）**：
+
+- **行为 token 消融（E3，新变体 sid-b3-na）**：关闭 watch_ratio 行为 token 后，五项指标全部方向为负但很小——
+  稠密三项完全落在 b3 三种子分布内、采样两项略低于下沿 0.15~0.27pp → **未检测到收益**（序列 -19%、评估快 17%）。
+- **beam 成本-质量 Pareto（D2）**：top-10 质量在 **beam≈20 饱和**（ndcg 0.5179 ≈ beam50 的 0.5178，延迟 256ms 仅 46%）；
+  beam=10 保留 90% ndcg、延迟 24%；recall@50 受候选清单长度约束（beam50 0.0378 vs beam20 0.0151）；coverage 2.8%→15.9%。
+
 **五条结论**：**① 从负结果到追平**——初版 SID 生成弱于原生 ID；经诊断（碰撞处理 + 内容特征）
 修复后，**b3 在两个协议上基本追平原生 ID**（dense recall@50 达 raw 的 98.5%、ndcg@10 反超 4%；
 采样协议 HR@10 达 raw 的 97.3%）；
@@ -165,7 +174,8 @@ src/genrec/
   generate.py             单用户生成 demo
 scripts/measure_speed.py  CPU 速度标定脚本      scripts/analyze_buckets.py 分桶分析
 scripts/build_extended_sid.py  b3 扩展 SID      scripts/run_convergence_campaign.py  收敛/种子战役
-tests/                    24 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE 关键性质）
+scripts/run_e3_d2_campaign.py  E3/D2 战役（行为 token 消融 + beam Pareto）
+tests/                    35 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融序列构建）
 docs/                     实验报告 / 面试材料 / 论文与出处
 ```
 
@@ -177,6 +187,7 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 | RQ-VAE 训练 | 416s（v1）/ 670s（v2），600 epochs |
 | 生成模型训练（150k 样本 ×1 epoch） | GRU 843s；Transformer 853~1,588s |
 | 收敛/种子战役（6 次训练 + 12 次双协议评估） | 24,592s ≈ 6.8h |
+| E3/D2 战役（5 点 beam 扫描 + 1 次训练 + 双协议评估） | 4,646s ≈ 77min |
 | 评估（1,411 用户） | 基线 <5s；生成模型 286~398s（beam=50, CPU） |
 | 训练吞吐 | **4 线程 206 samples/s；8 线程仅 19（线程超订）** |
 
@@ -199,7 +210,8 @@ docs/                     实验报告 / 面试材料 / 论文与出处
 - **离线研究原型**：无线上 A/B、无线上收益声明；标签为观看行为，非互动全信号；
 - **轻量预算**：主表为 1 epoch × 150k 样本；已补 3 epoch 收敛对照与三种子方差（§6.6），未做超参搜索；
 - **结论边界**：3 epoch 反超为单种子结论；采样协议上的领先证据弱于 dense 协议；b3 解码 557ms/用户（b1 279ms、raw 3.5ms），上线需 prefix 缓存等优化（待运行）；
-- **待运行**：行为 token 消融（on/off）、SASRec 标准基线、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
+- **消融与曲线**：行为 token 未检测到收益（E3 负结果，§6.7）；top-10 质量 beam≈20 饱和、直出场景延迟可减半（D2，§6.8）；
+- **待运行**：SASRec 标准基线、prefix 缓存推理优化、更细粒度冷启动定义（按上线时间）。
 
 ## 11. 引用与许可
 

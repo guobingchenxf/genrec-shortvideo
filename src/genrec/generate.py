@@ -18,13 +18,15 @@ def run(cfg, user_id, topk=10, beam=10):
     processed = cfg.path("paths", "processed_dir")
     ev = np.load(processed / "eval_contexts.npz")
     z = np.load(processed / "sid_codes.npz")
-    tok = SidTokenizer(z["video_ids"], z["codes"])
 
     ckpt_path = cfg.root / "results" / "models" / "gen_sid.pt"
     ckpt = torch.load(ckpt_path, weights_only=False)
+    tok = SidTokenizer(z["video_ids"], z["codes"],
+                       use_actions=bool(ckpt.get("use_actions", True)))
     max_items = int(ckpt["max_items"])
+    block = tok.n_levels + (1 if tok.use_actions else 0)
     max_len = int(ckpt.get("max_len")
-                  or (1 + max_items * (tok.n_levels + 1) + tok.n_levels + 8))
+                  or (1 + max_items * block + tok.n_levels + 8))
     model = NextTokenLM(
         ckpt["vocab_size"],
         d_model=int(ckpt["config"]["d_model"]),

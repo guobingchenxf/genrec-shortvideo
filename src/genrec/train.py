@@ -1,4 +1,4 @@
-"""训练入口：RQ-VAE（语义 ID）与生成式序列模型（SID / raw / raw-gru 三个变体）。
+"""训练入口：RQ-VAE（语义 ID）与生成式序列模型（变体清单见 VARIANTS）。
 
 运行方式见 cli.py：`python -m genrec.cli train-rqvae` / `train-gen --variant sid`。
 所有检查点写入 results/models/（不入库），训练日志写入 results/experiments/（入库）。
@@ -19,9 +19,10 @@ from genrec.models.seqgen import (
 from genrec.utils.monitor import save_json
 
 VARIANTS = {"sid": True, "sid-v2": True, "sid-b1": True, "sid-b3": True,
-            "raw": False, "raw-gru": False}
+            "sid-b3-na": True, "raw": False, "raw-gru": False}
 SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2",
-             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3"}
+             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3",
+             "sid-b3-na": "sid_codes_b3"}
 
 
 def train_rqvae_main(cfg, smoke=False, tag=None):
@@ -37,9 +38,9 @@ def _load_processsed(cfg, smoke, variant):
     return suffix, train_npz, sid_npz["video_ids"], sid_npz["codes"]
 
 
-def _build_tokenizer(variant, video_ids, codes):
+def _build_tokenizer(variant, video_ids, codes, use_actions=True):
     if VARIANTS[variant]:  # is_sid：sid 与 sid-v2 都走语义 ID 词表
-        return SidTokenizer(video_ids, codes)
+        return SidTokenizer(video_ids, codes, use_actions=use_actions)
     return RawTokenizer(video_ids)
 
 
@@ -66,7 +67,8 @@ def run_gen(cfg, variant, smoke=False, seed=None, epochs=None, tag="",
     device = "cpu"
 
     suffix, train_npz, video_ids, codes = _load_processsed(cfg, smoke, variant)
-    tok = _build_tokenizer(variant, video_ids, codes)
+    use_actions = bool(merged.get("use_actions", True))
+    tok = _build_tokenizer(variant, video_ids, codes, use_actions=use_actions)
     max_items = int(merged["max_context_items"])
 
     inputs, labels = build_training_sequences(
@@ -166,6 +168,7 @@ def run_gen(cfg, variant, smoke=False, seed=None, epochs=None, tag="",
         "max_len": int(inputs.shape[1] + 8),
         "seed": seed_eff,
         "device": device,
+        "use_actions": use_actions,
     }
     ckpt_path = results / "models" / f"gen_{variant}{tag}{suffix}.pt"
     torch.save(ckpt, ckpt_path)

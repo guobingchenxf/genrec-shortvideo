@@ -108,3 +108,35 @@ def test_evaluate_lists_hit_rate():
     assert out["hit_rate@2"] == 0.5          # 用户 7 命中，用户 8 未命中
     # 用户 7 的 recall@2 = 1/1，用户 8 = 0；均值 0.5
     assert abs(out["recall@2"] - 0.5) < 1e-9
+
+
+def test_sid_use_actions_off_encodes_sid_only():
+    """E3 消融：use_actions=False 时行为 token 不进入序列（词表不变）。"""
+    video_ids = np.array([10, 11])
+    codes = np.array([[0, 0, 0], [0, 0, 1]])
+    tok = SidTokenizer(video_ids, codes, codebook_size=256, use_actions=False)
+    toks = tok.encode_context(np.array([10, 11]), np.array([True, True]),
+                              np.array([1, 2]), max_items=5)
+    # 每个行为 = 3 个 SID token（无行为 token）
+    assert toks == [1, 2, 258, 514, 2, 258, 515]
+    assert tok.vocab_size == SidTokenizer(video_ids, codes,
+                                          codebook_size=256).vocab_size
+
+
+def test_build_training_sequences_without_actions():
+    video_ids = np.array([10, 11, 12])
+    codes = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]])
+    tok = SidTokenizer(video_ids, codes, codebook_size=256, use_actions=False)
+    x, y = build_training_sequences(
+        tok, np.array([[10, 11]]), np.array([[True, True]]),
+        np.array([[1, 2]]), np.array([12]), max_items=4, is_sid=True)
+    # 块 = 3 个 SID token；长度 = 1(BOS) + 4*3 + 3(目标)；目标 (0,1,0)
+    assert x.shape == (1, 1 + 4 * 3 + 3)
+    assert x[0, 7:10].tolist() == [2, 259, 514]
+    assert (y[0, :-1] == x[0, 1:]).all()
+
+
+def test_raw_tokenizer_keeps_actions_flag():
+    """共享的 block 公式依赖该属性存在。"""
+    tok = RawTokenizer(np.array([10, 11]))
+    assert tok.use_actions is True

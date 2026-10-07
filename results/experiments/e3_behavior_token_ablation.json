@@ -1,0 +1,47 @@
+{
+  "note": "E3：行为 token 消融。sid-b3-na = 关闭 watch_ratio 行为 token，其余与 sid-b3 完全一致（configs/default.yaml）。",
+  "variant": "sid-b3-na",
+  "base_variant": "sid-b3",
+  "training": {
+    "seed": 42,
+    "epochs": 1,
+    "seq_len": 85,
+    "vocab_size": 4103,
+    "use_actions": false,
+    "epochs_log": [
+      {
+        "epoch": 1,
+        "loss": 2.472856,
+        "wall_seconds": 1895.7,
+        "batches": 586,
+        "samples_per_second": 79.1,
+        "val_loss": 3.697948
+      }
+    ]
+  },
+  "eval": {
+    "dense": {
+      "recall@10": 0.008142,
+      "recall@50": 0.037035,
+      "ndcg@10": 0.503516,
+      "n_users": 1411
+    },
+    "sampled": {
+      "hr@10": 0.455,
+      "ndcg@10": 0.250643,
+      "n_users": 2000
+    }
+  },
+  "reference_sid-b3": {
+    "dense": {
+      "recall@10": 0.008349009232456746,
+      "recall@50": 0.03775364248463479,
+      "ndcg@10": 0.5178342765744591
+    },
+    "sampled": {
+      "hr@10": 0.4695,
+      "ndcg@10": 0.2677
+    }
+  },
+  "total_wall_seconds": 3859.9
+}

@@ -31,11 +31,13 @@ from genrec.utils.monitor import save_json
 
 METHOD_VARIANT = {"gen-sid": "sid", "gen-sid-v2": "sid-v2",
                   "gen-sid-b1": "sid-b1", "gen-sid-b3": "sid-b3",
+                  "gen-sid-b3-na": "sid-b3-na",
                   "gen-raw": "raw", "gru-raw": "raw-gru"}
 ALL_METHODS = ["pop", "itemcf", "gen-sid", "gen-sid-v2", "gen-sid-b1",
-               "gen-sid-b3", "gen-raw", "gru-raw"]
+               "gen-sid-b3", "gen-sid-b3-na", "gen-raw", "gru-raw"]
 SID_FILES = {"sid": "sid_codes", "sid-v2": "sid_codes_v2",
-             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3"}
+             "sid-b1": "sid_codes_b1", "sid-b3": "sid_codes_b3",
+             "sid-b3-na": "sid_codes_b3"}
 
 
 def _load_eval(cfg, smoke):
@@ -67,13 +69,14 @@ def _generate_lists(cfg, variant, contexts, actions, mask, video_ids, suffix,
     is_sid = bool(ckpt["is_sid"])
     if is_sid:
         z = np.load(processed / f"{SID_FILES[variant]}{suffix}.npz")
-        tok = SidTokenizer(z["video_ids"], z["codes"])
+        tok = SidTokenizer(z["video_ids"], z["codes"],
+                           use_actions=bool(ckpt.get("use_actions", True)))
     else:
         tok = RawTokenizer(video_ids)
     max_items = int(ckpt["max_items"])
     # 位置嵌入长度必须与训练时一致（否则 state_dict 不匹配）；
     # 旧检查点没有 max_len 字段，用训练时的公式重建
-    block = (tok.n_levels + 1) if is_sid else 2
+    block = (tok.n_levels if is_sid else 1) + (1 if tok.use_actions else 0)
     tgt_len = tok.n_levels if is_sid else 1
     max_len = int(ckpt.get("max_len") or (1 + max_items * block + tgt_len + 8))
     model = NextTokenLM(
