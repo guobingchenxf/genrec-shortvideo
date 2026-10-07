@@ -6,7 +6,8 @@
 做**无偏评估与受控对照实验**。全流程纯 CPU，可在普通笔记本上跑通。
 
 > 所有实验数字均来自本仓库实测存档（`results/experiments/*.json`），未运行项明确标注。
-> 详细版见 [`docs/实验报告.md`](docs/实验报告.md)；面试讲稿与追问见 [`docs/面试材料.md`](docs/面试材料.md)。
+> 详细版见 [`docs/实验报告.md`](docs/实验报告.md)；面试讲稿与追问见 [`docs/面试材料.md`](docs/面试材料.md)；
+> 英文技术报告（*A Controlled Study of Semantic-ID Generative Retrieval under Compute Constraints*）见 [`docs/technical_report.md`](docs/technical_report.md)。
 
 ![架构总览（数据 → 语义 ID → 序列建模 → 双协议评估）](docs/assets/architecture.png)
 
@@ -216,7 +217,7 @@ scripts/run_c2_sasrec.py  C2 战役（SASRec-lite 训练 + 双协议评估）
 scripts/analyze_coldstart.py  E5 冷启动细化   scripts/analyze_diversity.py  E6 多样性/新颖性
 scripts/run_d1_cache_eval.py  D1 等价性验证与延迟重评   scripts/run_d1_latency_control.py  D1 同条件对照
 tests/                    48 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融/多样性/解码等价性）
-docs/                     实验报告 / 面试材料 / 论文与出处
+docs/                     实验报告 / 面试材料 / 论文与出处 / 技术报告（EN）
 ```
 
 ## 8. 硬件资源需求（本机实测）
