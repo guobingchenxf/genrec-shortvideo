@@ -1,7 +1,5 @@
 """防漂移测试：CLI 选项、train.VARIANTS、config 的 gen.variants 三方必须一致。
 
-历史教训：两次变体接入遗漏（config 缺 sid-v2 条目、CLI 缺 sid-b1/b3 选项），
-均导致训练启动即失败。本测试把三处来源钉死。
 """
 
 import pytest
