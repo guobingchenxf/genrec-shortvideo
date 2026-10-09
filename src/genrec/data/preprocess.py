@@ -1,17 +1,5 @@
 """预处理流水线。产物全部写入 data/processed/，报告写入 data/reports/。
 
-流程：
-1) 载入大/小矩阵；watch_ratio 分桶为行为 token（5 档，下标 0..4）；
-2) 全局时间切分：前 90%（分位数 t0）训练窗口，后 10% 验证窗口；
-3) 小矩阵评估协议：每用户前 80% 行为做 context，后 20% 视频（去重保序）做 targets；
-   另存 leave-last-one 协议；导出 (user, target) 泄漏对用于剔除训练样本；
-4) 训练样本：逐用户构造 (context -> target)，context 只含 target 之前的行为
-   （防泄漏）；剔除泄漏对；按用户上限与全局上限采样；右对齐 padding + mask；
-5) 内容特征：caption + 类目文本 -> 中文字符 n-gram TF-IDF -> SVD 降维；
-6) 视频词表与 manifest（含实测耗时与内存）。
-
-smoke 模式只读前若干行做小规模 dry-run：产物加 `_smoke` 后缀、
-manifest 标记 smoke=true，仅用于流水线验证，不得用于任何正式实验结论。
 """
 
 import numpy as np
