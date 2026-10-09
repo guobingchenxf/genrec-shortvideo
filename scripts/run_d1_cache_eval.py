@@ -1,13 +1,4 @@
 """D1：前缀缓存解码的等价性验证 + 延迟重测。
-
-步骤：
-1) 备份当前 lists_*.npz（naive 存档，来自此前提交）；
-2) 用缓存解码重评：gen-sid / gen-sid-v2 / gen-sid-b1 / gen-sid-b3（beam50，增量合并主表）
-   + gen-sid-b3 的 beam {1,2,5,10,20} 五个点；
-3) 逐条对比新旧 top-50 列表 → results/experiments/d1_equivalence.json；
-4) 更新 beam_pareto.json：旧延迟记入 *_naive 字段，当前（cached）延迟写入主字段。
-
-输出：results/experiments/d1_equivalence.json（一致性）+ 更新的 main_table/beam_pareto。
 """
 
 import json
