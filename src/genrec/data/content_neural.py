@@ -1,13 +1,4 @@
 """B1：神经内容编码器（bge-small-zh-v1.5）→ 64 维内容特征。
-
-- 文本组装复用 `preprocess.build_video_texts`（与 TF-IDF 路线完全同源，
-  保证 B2 特征消融只有"编码器"这一个变量）；
-- 编码：CLS 池化 + L2 归一化（bge 的官方用法）；CPU 批量推理；
-- 降维：PCA 到 64 维（与 TF-IDF+SVD 路线的 64 维对齐）；
-- 产物：data/processed/content_feats_bge.npz（video_ids + feats 64d）
-  与 results/experiments/content_features_bge.json（含实测覆盖率与耗时）。
-
-模型文件放在 data/models/bge-small-zh-v1.5/（不入库），来源见 docs/论文与出处.md。
 """
 
 import time
