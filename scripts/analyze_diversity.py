@@ -1,14 +1,3 @@
-"""E6：列表内多样性（ILD@K）与新颖性（Novelty@K）分析。
-
-口径：
-- ILD@50 = Top-50 内两两余弦距离（1 - cos，内容特征 TF-IDF+SVD64）的均值，再对用户平均；
-- Novelty@50 = Top-50 物品平均自信息 -log2(p)，p 为训练窗热度占比（Laplace 平滑）。
-
-用法：python scripts/analyze_diversity.py [--methods ...] [--k 50]
-输入：results/experiments/lists_*.npz、data/processed/{video_vocab,content_feats,baseline_cache}.npz
-输出：results/experiments/diversity_metrics.json + 终端表格
-"""
-
 import argparse
 import json
 import sys
