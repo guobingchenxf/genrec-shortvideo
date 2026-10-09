@@ -1,15 +1,5 @@
 """统一评估入口：在全观测协议上评估各方法，产出主表与排序列表存档。
 
-方法清单：
-  pop         - 流行度（训练窗口交互计数 Top-50）
-  itemcf      - ItemCF（训练窗口共现相似度，context 最近 50 行为打分）
-  gen-sid     - 生成式模型（语义 ID v1：256 码本，受限解码 + beam）
-  gen-sid-v2  - 改进点 C1：语义 ID v2（1024 码本，降低碰撞）
-  gen-raw     - 对照：同架构直接生成原生 video token
-  gru-raw     - 轻量基线 GRU4Rec-lite（GRU + 原生 video token）
-
-另外：所有方法的 Top-K 排序列表存档到 results/experiments/lists_*.npz，
-供 scripts/analyze_buckets.py 做长尾/冷启动分桶分析。
 """
 
 import json
