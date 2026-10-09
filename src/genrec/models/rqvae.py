@@ -1,11 +1,5 @@
 """RQ-VAE：把内容特征量化为层次语义 ID（Semantic ID）。
 
-- 输入：每个视频的内容特征向量（TF-IDF -> SVD，见 preprocess.build_content_features）
-- 输出：每个视频的 L 级语义 ID（每级码本大小 K），L 级逐层"减去已量化残差"再量化
-- 参考：Lee et al., "Autoregressive Image Generation using Residual Quantization"
-  (CVPR 2022)；TIGER (Rajput et al., NeurIPS 2023) 将其用于推荐系统的生成式检索。
-
-注意：这是本项目的实现（未复制任何开源代码），与论文描述的差异在 docs 中说明。
 """
 
 from collections import defaultdict
