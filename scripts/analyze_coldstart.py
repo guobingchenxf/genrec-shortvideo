@@ -1,17 +1,3 @@
-"""E5：冷启动定义细化——按"视频首次曝光时间"定义真·上新物品。
-
-口径：
-- 物品首次曝光时间 = 大矩阵 ∪ 小矩阵的 timestamp 最小值（代理"上线时间"）；
-- "上新物品" = 首次曝光晚于训练窗截止 t0（即训练期完全未出现过）；
-- 对每个方法（lists_*.npz 存档）统计：
-  * 上新目标 / 老目标的 recall@50（micro：Σ命中 / Σ目标）；
-  * Top-50 中上新物品的槽位占比（曝光份额）。
-
-用法：python scripts/analyze_coldstart.py [--methods ...]
-输入：data/raw/kuairec/{big,small}_matrix.csv、manifest.json、eval_targets.json、lists_*.npz
-输出：results/experiments/coldstart_analysis.json + 终端表格
-"""
-
 import argparse
 import json
 import sys
