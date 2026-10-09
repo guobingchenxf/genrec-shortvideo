@@ -1,7 +1,5 @@
 """非神经基线：流行度与 ItemCF。
 
-相似度/热度只在"大矩阵训练窗口"（timestamp <= t0）上构建，与训练集口径一致；
-构建结果缓存到 data/processed/baseline_cache.npz（可复现、可删除重算）。
 """
 
 import json
