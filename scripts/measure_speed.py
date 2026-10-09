@@ -1,9 +1,3 @@
-"""CPU 训练速度标定脚本（用于确定训练预算与默认参数）。
-
-只做速度测量：使用真实数据的子集（不产生正式实验结论）；
-若正式 SID 还未生成，用随机码做"结构等效"的计时（不影响测速）。
-"""
-
 import sys
 import time
 from pathlib import Path
