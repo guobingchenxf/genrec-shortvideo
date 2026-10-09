@@ -1,19 +1,5 @@
 """生成式序列模型：语义 ID（SID）/ 原生 ID 的词表化、训练与受限解码。
 
-设计：
-- Token 布局（SID 变体）: PAD=0, BOS=1；
-  第 level 级码字 code 的 token = 2 + level*256 + code；
-  行为 token = 2 + levels*256 + action。每个行为 = L 个 SID token + 1 个行为 token。
-- Token 布局（raw 变体）: PAD=0, BOS=1；视频 token = 2 + video_idx；
-  行为 token = 2 + n_videos + action。每个行为 = 1 个视频 token + 1 个行为 token。
-- 训练：因果语言模型（预测下一个 token，PAD 忽略）；序列为
-  [BOS] + 历史行为 token 序列 + 目标物品 token；pad 放序列尾部（不污染因果注意力）。
-- 推理：SID 变体按 trie 做逐级受限解码 + beam search（只生成合法 SID）；
-  raw 变体单步 beam。碰撞 SID 在解码时按热度展开候选组（口径统一、如实报告）。
-- D1：SID 解码默认使用"context 前缀 K/V 缓存"实现（消除每步对整段前缀的重复计算）；
-  beam_search_sid_naive 为等价性测试用的参考实现（语义与缓存版一致）。
-- 行为 token 可关闭（use_actions=False，E3 消融）：每个行为只保留 SID token，
-  目标物品 token 序列不变（raw 变体暂不支持该开关）。
 """
 
 import math
