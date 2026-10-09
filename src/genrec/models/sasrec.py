@@ -1,15 +1,5 @@
 """C2：SASRec-lite 基线（自注意力序列推荐，采样 softmax 训练版）。
 
-参考：Kang & McAuley, "Self-Attentive Sequential Recommendation"（ICDM 2018）。
-CPU 友好的 lite 实现，与生成式模型保持同一数据预算（150k 序列样本、上下文窗口 20）；
-与论文实现的差异（如实声明，写入检查点 config）：
-- 损失用**全词表交叉熵**（与生成式模型同损失族；首版按路线图用 K=256 采样 softmax，
-  实测信号偏弱、SASRec 明显欠训——采样版 HR@10 仅 0.22——遂改为全词表）；
-- 左 padding + 窗口内绝对位置编码（padding 位置为 0），因果掩码；pre-LN 编码块；
-- 输出头与物品嵌入共享权重。
-
-序列格式与流水线一致：用户时间序最近 <=max_items 个物品；训练时追加 target
-（全部有效位置监督"预测下一物品"），评估时取最后位置隐状态对候选打分。
 """
 
 import time
