@@ -1,22 +1,3 @@
-"""P0 过夜战役：A1（收敛曲线）+ E4（种子方差），一次跑完。
-
-运行内容（全部实测；结果增量写入 results/experiments/convergence_campaign.json）：
-
-训练（两个模型 × 三个配置）：
-- {variant}-e3 : seed=42, epochs=3  → 收敛曲线（每轮 train/val loss）
-- {variant}-s43: seed=43, epochs=1  → 种子方差
-- {variant}-s44: seed=44, epochs=1  → 种子方差
-（seed42 × 1 epoch 的基线直接引用已有主检查点/主表数字，不重训）
-
-评估（每个新检查点，两个协议）：
-- 稠密协议：全观测小矩阵 recall@10/50、ndcg@10（1,411 用户）
-- 采样协议：留一+100 负采样，2,000 用户 HR@10/NDCG@10
-
-汇总：三种子配对差（sid-b3 − raw）的均值/极值。
-进程存活期间请求系统保持唤醒（Windows SetThreadExecutionState，不改系统设置）；
-单个步骤失败会记录错误并继续后续步骤（最大化过夜产出）。
-"""
-
 import json
 import sys
 import time
