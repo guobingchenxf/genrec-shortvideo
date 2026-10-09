@@ -1,13 +1,3 @@
-"""C2 战役：训练 SASRec-lite 基线并进入两种评估协议。
-
-- 训练：genrec.models.sasrec.run（150k 样本 × 3 epoch，采样 softmax 256 负例，CPU 4 线程）
-- 稠密协议：run_eval.run(["sasrec"])（增量合并进 main_table.json）
-- 标准协议：sampled.run(["sasrec"], max_users=2000)（增量合并进 sampled_protocol_n2000.json）
-
-进程存活期间请求系统保持唤醒（Windows SetThreadExecutionState，不改系统设置）；
-单个步骤失败会记录错误并继续后续步骤。
-"""
-
 import sys
 import time
 import traceback
