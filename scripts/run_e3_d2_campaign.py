@@ -1,16 +1,3 @@
-"""E3 + D2 战役：行为 token 消融（E3）+ beam 成本-质量 Pareto（D2），串行跑完。
-
-D2（先跑，快）：gen-sid-b3 在 beam ∈ {1,2,5,10,20} 下逐一做稠密全观测评估；
-  beam=50 参考点引用主表（同机同协议、另一会话运行，延迟可比性已在 JSON 注明）。
-  结果增量写 results/experiments/beam_pareto.json。
-E3（后跑，慢）：训练 sid-b3-na（关闭 watch_ratio 行为 token，其余同 sid-b3，seed42 × 1 epoch），
-  随后双协议评估（稠密 1,411 用户 + 留一 100 负采样 2,000 用户），与 sid-b3 对照；
-  结果增量写 results/experiments/e3_behavior_token_ablation.json。
-
-进程存活期间请求系统保持唤醒（Windows SetThreadExecutionState，不改系统设置）；
-单个步骤失败会记录错误并继续后续步骤。
-"""
-
 import json
 import sys
 import time
