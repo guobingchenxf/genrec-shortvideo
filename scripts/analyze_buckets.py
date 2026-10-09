@@ -1,17 +1,3 @@
-"""长尾 / 冷启动分桶分析：按目标视频的训练期热度分桶，计算各方法的桶内命中。
-
-用法：python scripts/analyze_buckets.py [--methods itemcf,gen-sid,gen-sid-v2,gen-raw]
-输入：results/experiments/lists_*.npz（排序列表存档，由 evaluate 生成）
-      data/processed/eval_targets.json、data/processed/baseline_cache.npz（训练期热度）
-输出：results/experiments/bucket_analysis.json + 终端表格
-
-口径说明：
-- 视频热度 = 大矩阵训练窗口（timestamp <= t0）内的交互次数（来自基线缓存）。
-- 桶划分：[0]（训练期零曝光，冷启动物品）、[1,5)、[5,50)、[50,500)、[500,+inf)。
-- 桶内 recall@50 = Σ命中 / Σ目标（micro 口径，只统计在该桶有目标的用户）；
-  另报"长尾曝光占比"= Top-50 中热度 <=5 的视频占比（micro）。
-"""
-
 import argparse
 import json
 import sys
