@@ -1,7 +1,6 @@
 """训练入口：RQ-VAE（语义 ID）与生成式序列模型（变体清单见 VARIANTS）。
 
-运行方式见 cli.py：`python -m genrec.cli train-rqvae` / `train-gen --variant sid`。
-所有检查点写入 results/models/（不入库），训练日志写入 results/experiments/（入库）。
+
 """
 
 import time
