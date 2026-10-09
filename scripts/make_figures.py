@@ -1,12 +1,3 @@
-"""F2：生成 README 顶部配图（均由脚本可复现生成）。
-
-- docs/assets/architecture.png：架构总览（数据 → 语义 ID → 序列建模 → 双协议评估）
-- docs/assets/collision_curve.png：碰撞率-质量四点剂量响应（money plot）
-
-依赖：matplotlib（如缺失：pip install matplotlib；仅绘图用，非训练依赖）。
-数据来源：results/experiments 的 sid_stats*.json（碰撞率）与 main_table.json（recall@50）。
-"""
-
 import json
 import sys
 from pathlib import Path
