@@ -1,6 +1,6 @@
 """单用户生成 demo：加载训练好的 SID 模型，对指定评估用户生成 Top-K 推荐。
 
-用法：python -m genrec.cli generate --user-id 0 --topk 10
+python -m genrec.cli generate --user-id 0 --topk 10
 """
 
 import numpy as np
