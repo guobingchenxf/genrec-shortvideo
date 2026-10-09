@@ -1,11 +1,3 @@
-"""D1 补充：同条件对照实验（同一进程、同一时段）。
-
-1) gen-sid-b3 @ beam50：前 128 用户 naive vs cached 背靠背计时（真实速度比）；
-2) cached 模式下重测 beam {1,2,5,10,20} 全量（同会话 Pareto，写回 beam_pareto.json）。
-
-输出：results/experiments/d1_latency_control.json
-"""
-
 import json
 import sys
 import time
