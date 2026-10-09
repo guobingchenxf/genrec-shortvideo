@@ -1,18 +1,4 @@
-"""下载 KuaiRec 数据（多源策略；下载后由 validate 按官方口径校验后才用于实验）。
-
-本机 2026-10-05 实测（写入 download_manifest.json）：
-- 官方 Zenodo 整包直链速度约 42 KB/s（432MB 需数小时），不作为自动默认；
-- HF 镜像（hf-mirror.com）上同一数据集的压缩矩阵速度约 455 KB/s；
-- 官方 Zenodo 的小文件（caption / raw categories）可达且体积小。
-
-默认路线：
-  big_matrix.csv.gz, small_matrix.csv.gz          <- HF 镜像（非官方镜像；
-      下载后按官方 README 统计口径严格校验行数/用户数/视频数/取值范围的
-      一致性，校验通过才用于实验，报告写入 data/reports/）
-  kuairec_caption_category.csv, video_raw_categories_multi.csv <- 官方 Zenodo
-
-手动/官方完整包路线见 README；本模块不做任何静默降级：
-尺寸不符 -> 抛错；校验口径不符 -> validate 阶段显式失败。
+"""下载 KuaiRec 数据
 """
 
 import gzip
