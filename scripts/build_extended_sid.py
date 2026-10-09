@@ -1,14 +1,3 @@
-"""B3：由 v2 语义 ID 构建"碰撞追加额外位"的扩展语义 ID（4 级）。
-
-做法：v2 的 3 级码 (c1,c2,c3) 若碰撞（多视频共享同一码），按组内 video_id 升序
-追加第 4 位码（组内序号，0 起）；未碰撞视频追加 0。扩展后**所有视频的 SID 唯一**，
-解码时无需"展开候选组"——与现有"展开"口径构成对照（B3）。
-
-输入：data/processed/sid_codes_v2.npz
-输出：data/processed/sid_codes_b3.npz（codes 形状 (N, 4)）
-      results/experiments/sid_extended_stats.json（碰撞/码位使用统计）
-"""
-
 import sys
 from collections import defaultdict
 from pathlib import Path
