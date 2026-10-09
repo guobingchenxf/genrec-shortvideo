@@ -1,12 +1,12 @@
 # GenRec-ShortVideo：基于语义 ID 的短视频生成式推荐（KuaiRec）
 
-一个**面向推荐算法实习面试、可完整复现**的生成式推荐研究原型：
+一个**可完整复现**的生成式推荐研究型项目：
 把视频编成**层次语义 ID**（内容特征 → RQ-VAE），用轻量 seq2seq 在用户行为序列上
 **生成**候选（trie 受限解码 + beam search），并在快手 **KuaiRec 全观测稠密矩阵**上
-做**无偏评估与受控对照实验**。全流程纯 CPU，可在普通笔记本上跑通。
+做**无偏评估与受控对照实验**。全流程纯 CPU，可在普通笔记本上跑通（已经在我的笔记本上跑通，可以不使用GPU）。
 
 > 所有实验数字均来自本仓库实测存档（`results/experiments/*.json`），未运行项明确标注。
-> 详细版见 [`docs/实验报告.md`](docs/实验报告.md)；面试讲稿与追问见 [`docs/面试材料.md`](docs/面试材料.md)；
+> 详细版见 [`docs/实验报告.md`](docs/实验报告.md)；
 > 英文技术报告（*A Controlled Study of Semantic-ID Generative Retrieval under Compute Constraints*）见 [`docs/technical_report.md`](docs/technical_report.md)。
 
 ![架构总览（数据 → 语义 ID → 序列建模 → 双协议评估）](docs/assets/architecture.png)
