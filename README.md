@@ -66,7 +66,7 @@ r_1 = z;  第 l 级:  c_l = argmin_k ||r_l − e_k||²;  r_{l+1} = r_l − c_l
 
 ### 3.2 生成模型（`src/genrec/models/seqgen.py`）
 
-- **Token 布局**：`PAD=0, BOS=1`；SID 码字 token = `2 + level*K + code`；
+- **Token 布局**：`PAD = 0, BOS = 1`；SID 码字 token = `2 + level*K + code`；
   行为 token = `2 + L*K + action`（watch_ratio 五档分桶）。每个行为 = L 个 SID token + 1 个行为 token。
 - **训练**：因果语言模型，`[BOS] + 历史 token 序列 + 目标 SID`，下一个 token 交叉熵（PAD 忽略）。
 - **推理**：对全部合法 SID 建 **trie**，beam search 每步只允许合法前缀；
