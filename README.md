@@ -217,7 +217,7 @@ scripts/run_c2_sasrec.py  C2 战役（SASRec-lite 训练 + 双协议评估）
 scripts/analyze_coldstart.py  E5 冷启动细化   scripts/analyze_diversity.py  E6 多样性/新颖性
 scripts/run_d1_cache_eval.py  D1 等价性验证与延迟重评   scripts/run_d1_latency_control.py  D1 同条件对照
 tests/                    48 项测试（合成数据，覆盖防泄漏/受限解码/RQ-VAE/消融/多样性/解码等价性）
-docs/                     实验报告 / 面试材料 / 论文与出处 / 技术报告（EN）
+docs/                     实验报告与技术报告等
 ```
 
 ## 8. 硬件资源需求（本机+agent实测）
