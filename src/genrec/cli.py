@@ -1,13 +1,15 @@
-"""GenRec-ShortVideo 命令行入口。
+"""GenRec-ShortVideo 命令行入口
 
 用法（在项目根目录执行）：
   python -m genrec.cli download            # 下载并解压 KuaiRec
-  python -m genrec.cli validate            # 校验原始数据（失败非零退出）
+  python -m genrec.cli validate            # 校验原始数据
   python -m genrec.cli prepare [--smoke]   # 预处理（产物/干跑分离）
   python -m genrec.cli train-rqvae [--smoke]          # 训练语义 ID（RQ-VAE）
+  python -m genrec.cli encode-content [--out content_feats_bge.npz] # B1：神经内容编码器特征（bge-small-zh）
   python -m genrec.cli train-gen --variant sid|raw|raw-gru [--smoke]
   python -m genrec.cli train-sasrec [--smoke]         # C2：SASRec-lite 基线
   python -m genrec.cli evaluate [--methods pop,itemcf,...] [--smoke]
+  python -m genrec.cli evaluate-sampled [--methods ...] # 标准协议（留一法 + 100 负采样）
   python -m genrec.cli generate --user-id 0 --topk 10
 """
 
