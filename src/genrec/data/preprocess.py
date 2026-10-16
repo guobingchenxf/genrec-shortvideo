@@ -13,7 +13,6 @@ MATRIX_COLS = ["user_id", "video_id", "watch_ratio", "timestamp"]
 
 
 # ----------------------------------------------------------------------
-# 纯函数（tests/ 直接测试这些函数）
 # ----------------------------------------------------------------------
 def bucket_action(watch_ratio, buckets):
     """watch_ratio -> 行为 token。buckets 升序边界，返回 0..len(buckets)。"""
