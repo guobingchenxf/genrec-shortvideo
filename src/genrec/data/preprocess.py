@@ -246,7 +246,7 @@ def build_content_features(video_ids, data_dir, content_cfg, seed):
 
 
 # ----------------------------------------------------------------------
-# 主流程
+# 主流程，入口函数
 # ----------------------------------------------------------------------
 def run(cfg, smoke=False):
     timer = StepTimer()
